@@ -20,7 +20,7 @@ import promoMartes  from "@/imports/PROMO_MARTES.jpeg";
 import promoViernes from "@/imports/PROMO_VIERNES.jpeg";
 
 // ── product photos ────────────────────────────────────────────────────────────
-import imgPocima    from "@/imports/LAPOCIMA.jpeg";
+import imgPocima    from "@/imports/LAPOCIMA.png";
 import imgMexicano  from "@/imports/MEXICANO.jpeg";
 import imgMangonada from "@/imports/MANGONADA.jpeg";
 import imgFresada   from "@/imports/FRESADA.jpeg";
@@ -96,22 +96,6 @@ const promos = [
 
 const recommended = [
   {
-    name: "LA POCIMA",
-    photo: imgPocima,
-    price: "20K",
-    badge: "GRANIZADO FEST 2026 - TULUA",
-    desc: "Sabor misterioso con ingredientes secretos",
-    tags: ["CON LICOR"],
-  },
-  {
-    name: "MEXICANO",
-    photo: imgMexicano,
-    price: "20K",
-    badge: null,
-    desc: "Tequila, Smirnoff de limón y chamoy",
-    tags: ["CON LICOR"],
-  },
-  {
     name: "MANGONADA",
     photo: imgMangonada,
     price: "20K",
@@ -131,8 +115,24 @@ const recommended = [
     name: "LA COMBI COMPLETA",
     photo: imgCombi,
     price: "20K",
-    badge: "LA COMBI COMPLETA",
+    badge: null,
     desc: "Combinación deliciosa de todos los sabores",
+    tags: ["CON LICOR"],
+  },
+  {
+    name: "LA POCIMA",
+    photo: imgPocima,
+    price: "20K",
+    badge: "GRANIZADO FEST 2026",
+    desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo",
+    tags: ["CON LICOR"],
+  },
+  {
+    name: "MEXICANO",
+    photo: imgMexicano,
+    price: "20K",
+    badge: null,
+    desc: "Tequila, Smirnoff de limón y chamoy",
     tags: ["CON LICOR"],
   },
 ];
@@ -195,7 +195,7 @@ const cocktailColumns: CocktailCategory[][] = [
     ] },
   ],
   [
-    { title: "NEVERAS EXPLOSIVAS", items: [
+    { title: "NEVERAS EXPLOSIVAS (GRANIZADAS)", items: [
       { name: "LA TENTADORA (3-4 PERSONAS)", price: "40K", description: "Granizado de preferencia, 2 coronitas, jeringas de licor, gomas y dulces" },
       { name: "LA PECADORA (3-4 PERSONAS)", price: "70K", description: "Granizado de preferencia, 2 coronitas, jeringas de licor, gomas y dulces" },
       { name: "LA PROHIBIDA (5-6 PERSONAS)", price: "100K", description: "Granizado de preferencia, 1 four loko, jeringas de licor, gomas y dulces" },
@@ -205,7 +205,7 @@ const cocktailColumns: CocktailCategory[][] = [
       { name: "CON CORONITA", price: "22K" },
       { name: "CON SMIRNOFF", price: "26K" },
     ] },
-    { title: "PECERAS LOCAS", items: [
+    { title: "PECERAS LOCAS (LIQUIDAS)", items: [
       { name: "LA EXÓTICA (3 PERSONAS)", price: "50K", description: "2 coronitas o 1 smirnoff, whisky, ron, limón, maracuyá, soda y dulces" },
       { name: "LA MÍSTICA (3 PERSONAS)", price: "60K", description: "Four loko, whisky, tequila, vodka, limón, mango, zumo de naranja, sirope Maracuyá, soda y dulces" },
       { name: "NIGHT LOCA (6 PERSONAS)", price: "75K", description: "Four loko, tequila, vodka, whisky, ron, maracuyá, mango, limón, rodajas de naranja, zumo de naranja, soda y dulces" },
@@ -226,10 +226,10 @@ const cocktailColumns: CocktailCategory[][] = [
 ];
 
 const socials = [
-  { name: "Instagram", handle: "@granizadoscocktails", followers: "+2K", icon: iconIG,  color: "#E1306C", glow: "rgba(225,48,108,0.5)", url: "https://instagram.com",     invert: false },
-  { name: "TikTok",    handle: "@granizadoscocktails", followers: "+2K", icon: iconTT,  color: "#FF00FF", glow: "rgba(255,0,255,0.5)",  url: "https://tiktok.com",        invert: true  },
-  { name: "Facebook",  handle: "Granizados Cocktails", followers: "+2K", icon: iconFB,  color: "#0066FF", glow: "rgba(0,102,255,0.5)",  url: "https://facebook.com",      invert: false },
-  { name: "WhatsApp",  handle: "+57 311 767 2353",     followers: "Escríbenos", icon: iconWA, color: "#25D366", glow: "rgba(37,211,102,0.5)", url: "https://wa.me/573117672353", invert: false },
+  { name: "granizados_tulua",    handle: "granizados_tulua",    followers: "+4K", icon: iconIG,  color: "#E1306C", glow: "rgba(225,48,108,0.5)", url: "https://www.instagram.com/granizados_tulua?stkn=MTI2OGR0NDV0eXdobQ==", invert: false },
+  { name: "@granizados.tulua",   handle: "@granizados.tulua",   followers: "+1K", icon: iconTT,  color: "#FF00FF", glow: "rgba(255,0,255,0.5)",  url: "https://www.tiktok.com/@granizados.tulua?_r=1&_t=ZS-99cZZDFaVbb", invert: true  },
+  { name: "Granizados Tulúa",    handle: "Granizados Tulúa",    followers: "+1K", icon: iconFB,  color: "#0066FF", glow: "rgba(0,102,255,0.5)",  url: "https://www.facebook.com/share/1DhQAddCnE/?mibextid=wwXIfr", invert: false },
+  { name: "WhatsApp",            handle: "Escríbenos",           followers: "Escríbenos", icon: iconWA, color: "#25D366", glow: "rgba(37,211,102,0.5)", url: "https://wa.me/573117672353", invert: false },
 ];
 
 const tabs = [
@@ -274,7 +274,7 @@ function SectionInicio() {
           SINCE 2025
         </div>
         <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.5 }}>
-          Sabor, Frescura y Diversión en cada sorbo
+          LOS MEJORES GRANIZADOS DE TULÚA Y BUGA
         </p>
         <button className="btn-neon" onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}>
           Ver Menú
@@ -327,21 +327,12 @@ function SectionInicio() {
               flexShrink: 0,
             }}>
             {/* product photo */}
-            <div className="product-image-container" style={{ position: "relative", flexShrink: 0 }}>
-              <img src={item.photo} alt={item.name} className="product-image" />
-              {item.badge && (
-                <div style={{
-                  position: "absolute", bottom: 8, left: 8, right: 8,
-                  background: "var(--fucsia)", color: "#fff",
-                  borderRadius: 8, padding: "3px 8px",
-                  fontFamily: "var(--font-sub)", fontWeight: 700,
-                  fontSize: 8, textAlign: "center",
-                  boxShadow: "var(--neon-fucsia)",
-                  letterSpacing: 0.5,
-                }}>
-                  {item.badge}
-                </div>
-              )}
+            <div className="product-image-container" style={{ flexShrink: 0 }}>
+              <img
+                src={item.photo}
+                alt={item.name}
+                className="product-image"
+              />
             </div>
             {/* card body */}
             <div style={{ padding: "12px", display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
@@ -353,6 +344,19 @@ function SectionInicio() {
                   RECOMENDADO
                 </span>
               </div>
+              {item.badge && (
+                <div style={{
+                  display: "block", width: "100%",
+                  background: "var(--fucsia)", color: "#fff",
+                  borderRadius: 8, padding: "3px 8px",
+                  fontFamily: "var(--font-sub)", fontWeight: 700,
+                  fontSize: 8, textAlign: "center",
+                  boxShadow: "var(--neon-fucsia)",
+                  letterSpacing: 0.5,
+                }}>
+                  {item.badge}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -416,16 +420,10 @@ function SectionSucursales() {
           ))}
         </div>
 
-        {/* Single call button */}
-        <a href="tel:3117672353" style={{ textDecoration: "none", display: "block" }}>
-          <button className="btn-neon" style={{ width: "100%", padding: "12px", fontSize: 13 }}>
-            Llamar — 311 767 2353
-          </button>
-        </a>
       </div>
 
       {/* ── Buga flyer ── */}
-      <div style={{ borderRadius: 16, overflow: "hidden", border: "1.5px solid rgba(255,0,255,0.4)", boxShadow: "0 0 20px rgba(255,0,255,0.15)", position: "relative" }}>
+      <div style={{ width: "85%", margin: "0 auto", borderRadius: 16, overflow: "hidden", border: "1.5px solid rgba(255,0,255,0.4)", boxShadow: "0 0 20px rgba(255,0,255,0.15)", position: "relative" }}>
         <img src={imgFlayerBuga} alt="Granizados Tulúa llega a Buga"
           style={{ width: "100%", display: "block", objectFit: "cover" }} />
         <div style={{
@@ -455,7 +453,7 @@ function SectionRedes({ dark }: { dark: boolean }) {
         <img src={logoNeon} alt="logo" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", margin: "0 auto 12px", display: "block", boxShadow: dark ? "0 0 20px rgba(255,0,255,0.5)" : "none" }} />
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: 24, color: textC, letterSpacing: 3, textShadow: dark ? "0 0 15px rgba(255,0,255,0.6)" : "none" }}>SÍGUENOS</h1>
         <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: textSub, marginTop: 4 }}>
-          Encuentra todo el contenido fresco aquí
+          CONOCE TODO DE GRANIZADOS-COCKTAILS, PROMOCIONES, NUEVOS SABORES Y MÁS. 
         </p>
       </div>
 
@@ -514,7 +512,7 @@ function SectionMenu() {
             <div className="menu-price-title">PRECIOS GRANIZADOS</div>
             <div className="menu-price-list">
               <span>GOMAS <strong>15K</strong></span>
-              <span>GOMAS, PERLAS, FRUTA <strong>18K</strong></span>
+              <span>GOMAS, PERLAS EXPLOSIVAS, FRUTAS <strong>18K</strong></span>
               <span>CREMOSOS <strong>18K</strong></span>
               <span>RECOMENDADOS <strong>20K</strong></span>
             </div>
