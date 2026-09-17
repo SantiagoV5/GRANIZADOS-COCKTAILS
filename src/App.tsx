@@ -17,28 +17,26 @@ import iconSun     from "@/imports/modo-claro.png";
 // ── promo photos ─────────────────────────────────────────────────────────────
 import promoJueves  from "@/imports/PROMO_JUEVES.jpeg";
 import promoMartes  from "@/imports/PROMO_MARTES.jpeg";
-import promoViernes from "@/imports/PROMO_VIERNES.jpeg";
+import promoViernes from "@/imports/PROMO_VIERNES.jpg";
 
 // ── product photos ────────────────────────────────────────────────────────────
 import imgPocima    from "@/imports/LAPOCIMA.png";
-import imgMexicano  from "@/imports/MEXICANO.jpeg";
-import imgMangonada from "@/imports/MANGONADA.jpeg";
-import imgFresada   from "@/imports/FRESADA.jpeg";
-import imgCombi     from "@/imports/COMBICOMPLETA.jpeg";
-import imgNocheArdiente from "@/imports/NOCHE_ARDIENTE.jpeg";
-import imgMoraAzul      from "@/imports/MORA_AZUL.jpeg";
-import imgFrutosRojos   from "@/imports/FRUTOS_ROJOS-INTENSOS.jpeg";
-import imgMaracumango   from "@/imports/MARACUMANGO.jpeg";
-import imgSmirnoff      from "@/imports/SMIRNOFF.jpeg";
-import imgPanteraRosa   from "@/imports/PANTERA_ROSA.jpeg";
-import imgJagermeister  from "@/imports/JÁGERMEISTER.jpeg";
-import imgMiamiNight    from "@/imports/MIAMI_NIGHT.jpeg";
-import imgMargarita     from "@/imports/MARGARITA_TEQUILA.jpeg";
+import imgMexicano  from "@/imports/MEXICANO EDITADO.png";
+import imgMangonada from "@/imports/MANGONADA.png";
+import imgFresada   from "@/imports/FRESADA.png";
+import imgCombi     from "@/imports/COMBICOMPLETA.png";
+import imgNocheArdiente from "@/imports/NOCHE_ARDIENTE.png";
+import imgMoraAzul      from "@/imports/MORA AZUL.png";
+import imgFrutosRojos   from "@/imports/FRUTOS_ROJOS-INTENSOS.png";
+import imgMaracumango   from "@/imports/MARACUMANGO.png";
+import imgSmirnoff      from "@/imports/SMIRNOFF.png";
+import imgPanteraRosa   from "@/imports/PANTERA_ROSA.png";
+import imgJagermeister  from "@/imports/JÁGERMEISTER.png";
+import imgMiamiNight    from "@/imports/MIAMI_NIGHT.png";
+import imgMargarita     from "@/imports/MARGARITA_TEQUILA.png";
 import imgCremosoBaileys from "@/imports/CREMOSO_BAILEYS.jpeg";
-import imgChicle        from "@/imports/CHICLE.jpeg";
-
-// ── branch assets ─────────────────────────────────────────────────────────────
-import imgFlayerBuga from "@/imports/FLAYER_BUGA.jpeg";
+import imgChicle        from "@/imports/CHICLE.png";
+import imgMangomanzana  from "@/imports/MANGOMANZANA.png";
 
 // ── theme ─────────────────────────────────────────────────────────────────────
 function useTheme() {
@@ -54,8 +52,35 @@ function isOpenNow() {
   const now  = new Date();
   const day  = now.getDay();
   const hour = now.getHours() + now.getMinutes() / 60;
-  const close = day === 5 ? 25 : day === 6 ? 26 : 24;
-  return hour >= 16 && hour < close;
+
+  // Closing hour expressed past midnight (24+) for days that stay open into the next day.
+  const closingHour = (d: number) => (d === 5 ? 25 : d === 6 ? 26 : 24); // Viernes 1AM, Sábado 2AM
+
+  // Still inside today's own 4PM–midnight window.
+  if (hour >= 16 && hour < 24) return true;
+
+  // Early morning: still inside yesterday's overnight extension (e.g. Sábado 00:30 counts
+  // as Viernes' session, which runs until 1AM).
+  const prevDay = (day + 6) % 7;
+  const prevClosing = closingHour(prevDay);
+  if (prevClosing > 24 && hour < prevClosing - 24) return true;
+
+  return false;
+}
+
+const WHATSAPP_NUMBER = "573117672353";
+
+function orderWhatsAppLink(name: string, ingredients: string) {
+  const message = `Hola! Quiero pedir un granizado:\n\n*${name}*\n${ingredients}\n\n¿Me confirman disponibilidad? Gracias!`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+function promoWhatsAppLink(day: string, orderText?: string) {
+  const dayLabel = day.charAt(0) + day.slice(1).toLowerCase();
+  const message = orderText
+    ? `Hola! ${orderText}. ¿Me confirman disponibilidad? Gracias!`
+    : `Hola! Quiero aprovechar la promoción de los ${dayLabel}. ¿Me cuentan los detalles?`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
 const ICON_INACTIVE_DARK  = "brightness(0) invert(1)";
@@ -70,31 +95,51 @@ const socialIconFilter = (dark: boolean) =>
 const promos = [
   {
     day: "MARTES",
-    title: "2 CREMOSOS x 30K",
-    sub: "Promo válida los martes",
     photo: promoMartes,
     color: "#FF00FF",
     border: "rgba(255,0,255,0.6)",
+    orderText: "quiero la promo de 2 cremosos por 30.000",
   },
   {
     day: "JUEVES",
-    title: "DOMI GRATIS",
-    sub: "En pedidos seleccionados",
     photo: promoJueves,
     color: "#0066FF",
     border: "rgba(0,102,255,0.6)",
   },
   {
     day: "VIERNES",
-    title: "2x 20K | 3x 30K | 4x 40K",
-    sub: "Granizados solo gomas",
     photo: promoViernes,
     color: "#FF00FF",
     border: "rgba(255,0,255,0.6)",
+    orderText: "quiero la promo de 2 granizados por 20.000",
   },
 ];
 
 const recommended = [
+  {
+    name: "LA POCIMA",
+    photo: imgPocima,
+    price: "20K",
+    badge: "GRANIZADO FEST 2026",
+    desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo",
+    tags: ["CON LICOR"],
+  },
+  {
+    name: "LA COMBI COMPLETA",
+    photo: imgCombi,
+    price: "20K",
+    badge: null,
+    desc: "Combinación deliciosa de todos los sabores",
+    tags: ["CON LICOR"],
+  },
+  {
+    name: "MEXICANO",
+    photo: imgMexicano,
+    price: "20K",
+    badge: null,
+    desc: "Tequila, Smirnoff de limón y chamoy",
+    tags: ["CON LICOR"],
+  },
   {
     name: "MANGONADA",
     photo: imgMangonada,
@@ -111,30 +156,6 @@ const recommended = [
     desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas",
     tags: ["CON O SIN LICOR"],
   },
-  {
-    name: "LA COMBI COMPLETA",
-    photo: imgCombi,
-    price: "20K",
-    badge: null,
-    desc: "Combinación deliciosa de todos los sabores",
-    tags: ["CON LICOR"],
-  },
-  {
-    name: "LA POCIMA",
-    photo: imgPocima,
-    price: "20K",
-    badge: "GRANIZADO FEST 2026",
-    desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo",
-    tags: ["CON LICOR"],
-  },
-  {
-    name: "MEXICANO",
-    photo: imgMexicano,
-    price: "20K",
-    badge: null,
-    desc: "Tequila, Smirnoff de limón y chamoy",
-    tags: ["CON LICOR"],
-  },
 ];
 
 type GranizadoItem = { name: string; ingredients: string; photo?: string };
@@ -150,6 +171,7 @@ const granizadoItems: Record<string, GranizadoItem[]> = {
     { name: "JÄGERMEISTER", ingredients: "Naranja, Jägermeister, Whisky", photo: imgJagermeister },
     { name: "MIAMI NIGHT", ingredients: "Uva, Triple sec, Tequila", photo: imgMiamiNight },
     { name: "MARGARITA TEQUILA", ingredients: "Cereza, Maracuyá, Tequila", photo: imgMargarita },
+    { name: "MANGOMANZANA", ingredients: "Mango biche manzana, Tequila, Four Loko", photo: imgMangomanzana },
   ],
   sinLicor: [
     { name: "FRUTOS INTENSOS", ingredients: "Fresa, Bombombun", photo: imgFrutosRojos },
@@ -226,17 +248,17 @@ const cocktailColumns: CocktailCategory[][] = [
 ];
 
 const socials = [
-  { name: "granizados_tulua",    handle: "granizados_tulua",    followers: "+4K", icon: iconIG,  color: "#E1306C", glow: "rgba(225,48,108,0.5)", url: "https://www.instagram.com/granizados_tulua?stkn=MTI2OGR0NDV0eXdobQ==", invert: false },
-  { name: "@granizados.tulua",   handle: "@granizados.tulua",   followers: "+1K", icon: iconTT,  color: "#FF00FF", glow: "rgba(255,0,255,0.5)",  url: "https://www.tiktok.com/@granizados.tulua?_r=1&_t=ZS-99cZZDFaVbb", invert: true  },
-  { name: "Granizados Tulúa",    handle: "Granizados Tulúa",    followers: "+1K", icon: iconFB,  color: "#0066FF", glow: "rgba(0,102,255,0.5)",  url: "https://www.facebook.com/share/1DhQAddCnE/?mibextid=wwXIfr", invert: false },
-  { name: "WhatsApp",            handle: "Escríbenos",           followers: "Escríbenos", icon: iconWA, color: "#25D366", glow: "rgba(37,211,102,0.5)", url: "https://wa.me/573117672353", invert: false },
+  { name: "granizados_tulua",    handle: "granizados_tulua",    followers: "+4K", icon: iconIG,  color: "#E1306C", glow: "rgba(225,48,108,0.5)", url: "https://www.instagram.com/granizados_tulua?stkn=MTI2OGR0NDV0eXdobQ==", invert: false, ctaLabel: "Síguenos" },
+  { name: "@granizados.tulua",   handle: "@granizados.tulua",   followers: "+1K", icon: iconTT,  color: "#FF00FF", glow: "rgba(255,0,255,0.5)",  url: "https://www.tiktok.com/@granizados.tulua?_r=1&_t=ZS-99cZZDFaVbb", invert: true, ctaLabel: "Síguenos" },
+  { name: "Granizados Tulúa",    handle: "Granizados Tulúa",    followers: "+1K", icon: iconFB,  color: "#0066FF", glow: "rgba(0,102,255,0.5)",  url: "https://www.facebook.com/share/1DhQAddCnE/?mibextid=wwXIfr", invert: false, ctaLabel: "Síguenos" },
+  { name: "WhatsApp",            handle: "",           followers: "", icon: iconWA, color: "#25D366", glow: "rgba(37,211,102,0.5)", url: "https://wa.me/573117672353", invert: false, ctaLabel: "Escríbenos" },
 ];
 
 const tabs = [
   { id: "inicio",     label: "Inicio",     icon: iconCasa     },
+  { id: "menu",       label: "Menú",       icon: iconMenu     },
   { id: "sucursales", label: "Sucursales", icon: iconEdificio },
   { id: "redes",      label: "Redes",      icon: iconRedes    },
-  { id: "menu",       label: "Menú",       icon: iconMenu     },
 ];
 
 // ── reusable size selector ────────────────────────────────────────────────────
@@ -254,8 +276,6 @@ function SizeSelector() {
 // ── sections ──────────────────────────────────────────────────────────────────
 
 function SectionInicio() {
-  const open = isOpenNow();
-
   return (
     <section id="inicio" style={{ paddingBottom: 32 }}>
 
@@ -288,23 +308,42 @@ function SectionInicio() {
         </h2>
       </div>
       <div className="carousel-container">
-        {promos.map((p) => (
-          <div key={p.day} className="product-card promo-card"
-            style={{ position: "relative", overflow: "hidden", border: `1.5px solid ${p.border}`, boxShadow: `0 0 16px ${p.color}50` }}>
-            {/* background photo */}
-            <div className="product-image-container promo-image-container">
-              <img src={p.photo} alt={p.day} className="product-image" />
+        {promos.map((p) => {
+          const orderable = p.day !== "JUEVES";
+          return (
+          <div key={p.day} style={{ position: "relative", flex: "0 0 auto", width: 160, scrollSnapAlign: "start", paddingTop: 12 }}>
+            {/* day badge, hangs above the card's border */}
+            <div style={{
+              position: "absolute", top: 0, left: 12, zIndex: 1,
+              background: p.color, color: "#000",
+              borderRadius: 20, padding: "5px 14px",
+              fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
+              letterSpacing: 3, boxShadow: `0 0 14px ${p.color}`,
+            }}>
+              {p.day}
             </div>
-            {/* overlay */}
-            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.62)" }} />
-            {/* text */}
-            <div style={{ position: "absolute", inset: 0, padding: "16px", display: "flex", flexDirection: "column", gap: 5, justifyContent: "flex-end" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 11, letterSpacing: 3, color: p.color, textShadow: `0 0 10px ${p.color}` }}>{p.day}</div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 20, letterSpacing: 1, color: "#fff", lineHeight: 1.15 }}>{p.title}</div>
-              <div style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "rgba(255,255,255,0.8)" }}>{p.sub}</div>
+            {/* image box: only the photo, same height for every promo so they stay flush */}
+            <div className="product-card promo-card"
+              style={{ position: "relative", overflow: "hidden", border: `1.5px solid ${p.border}`, boxShadow: `0 0 16px ${p.color}50`, width: "100%", cursor: orderable ? "pointer" : "default" }}
+              onClick={() => {
+                if (!orderable) return;
+                window.open(promoWhatsAppLink(p.day, p.orderText), "_blank", "noopener,noreferrer");
+              }}
+            >
+              <div className="product-image-container promo-image-container" style={{ position: "relative" }}>
+                <img src={p.photo} alt={p.day} className="product-image" />
+                {/* overlay */}
+                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.100)" }} />
+                {/* text */}
+                <div style={{ position: "absolute", inset: 0, padding: "16px", display: "flex", flexDirection: "column", gap: 5, justifyContent: "flex-end" }}>
+                  <div style={{ fontFamily: "var(--font-display)", fontSize: 20, letterSpacing: 1, color: "#fff", lineHeight: 1.15 }}></div>
+                  <div style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "rgba(255,255,255,0.8)" }}></div>
+                </div>
+              </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ── Recomendados ── */}
@@ -325,7 +364,10 @@ function SectionInicio() {
               display: "flex",
               flexDirection: "column",
               flexShrink: 0,
-            }}>
+              cursor: "pointer",
+            }}
+            onClick={() => window.open(orderWhatsAppLink(item.name, item.desc), "_blank", "noopener,noreferrer")}
+          >
             {/* product photo */}
             <div className="product-image-container" style={{ flexShrink: 0 }}>
               <img
@@ -357,25 +399,13 @@ function SectionInicio() {
                   {item.badge}
                 </div>
               )}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.4)", borderRadius: 20, padding: "4px 10px", width: "100%" }}>
+                <div style={{ width: 16, height: 16, backgroundColor: "#25D366", WebkitMaskImage: `url(${iconWA})`, maskImage: `url(${iconWA})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
+                <span style={{ fontFamily: "var(--font-sub)", fontSize: 9, fontWeight: 700, color: "#25D366" }}>PEDIR</span>
+              </div>
             </div>
           </div>
         ))}
-      </div>
-
-      {/* ── Horario ── */}
-      <div style={{ margin: "22px 20px 0", background: "var(--schedule-bg)", borderRadius: 16, padding: 20, border: "1px solid rgba(255,0,255,0.3)", boxShadow: "0 0 20px rgba(255,0,255,0.1)" }}>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: 17, color: "#fff", letterSpacing: 2, marginBottom: 12 }}>HORARIO TULÚA</div>
-        {[["Lun – Jue","4:00 PM – 12:00 AM"],["Viernes","4:00 PM – 1:00 AM"],["Sábado","4:00 PM – 2:00 AM"],["Domingo","4:00 PM – 12:00 AM"]].map(([d,h]) => (
-          <div key={d} style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--font-body)", fontSize: 12, color: "rgba(255,255,255,0.75)", padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <span style={{ color: "rgba(255,0,255,0.85)" }}>{d}</span><span>{h}</span>
-          </div>
-        ))}
-        <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: open ? "#00FF88" : "#FF3344", boxShadow: `0 0 8px ${open ? "#00FF88" : "#FF3344"}`, display: "inline-block", flexShrink: 0 }} />
-          <span style={{ fontFamily: "var(--font-sub)", fontSize: 12, fontWeight: 600, color: open ? "#00FF88" : "#FF3344" }}>
-            {open ? "Abierto ahora" : "Cerrado ahora"}
-          </span>
-        </div>
       </div>
     </section>
   );
@@ -422,18 +452,37 @@ function SectionSucursales() {
 
       </div>
 
-      {/* ── Buga flyer ── */}
-      <div style={{ width: "85%", margin: "0 auto", borderRadius: 16, overflow: "hidden", border: "1.5px solid rgba(255,0,255,0.4)", boxShadow: "0 0 20px rgba(255,0,255,0.15)", position: "relative" }}>
-        <img src={imgFlayerBuga} alt="Granizados Tulúa llega a Buga"
-          style={{ width: "100%", display: "block", objectFit: "cover" }} />
-        <div style={{
-          position: "absolute", bottom: 0, left: 0, right: 0,
-          background: "linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%)",
-          padding: "20px 16px 14px",
-          display: "flex", flexDirection: "column", gap: 4,
-        }}>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "#fff", letterSpacing: 3, textShadow: "0 0 15px rgba(255,0,255,0.7)" }}>BUGA</div>
-          <div style={{ fontFamily: "var(--font-sub)", fontSize: 13, fontWeight: 700, color: "var(--fucsia)", textShadow: "0 0 8px rgba(255,0,255,0.6)", letterSpacing: 1 }}>PROXIMAMENTE 2026</div>
+      {/* ── Buga ── */}
+      <div className="card" style={{ borderColor: "rgba(255,0,255,0.35)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <img src={iconEdificio} alt="Sucursal" style={{ width: 26, height: 26, filter: "var(--icon-filter-inactive)", flexShrink: 0 }} />
+          <div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 20, letterSpacing: 1, color: "var(--fucsia)", textShadow: "var(--text-neon-fucsia)" }}>BUGA</div>
+            <div style={{ fontFamily: "var(--font-sub)", fontSize: 10, color: "var(--text-muted)" }}>Nueva Sede</div>
+          </div>
+          <div style={{ marginLeft: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, background: open ? "rgba(0,255,136,0.1)" : "rgba(255,51,68,0.1)", border: `1px solid ${open ? "#00FF88" : "#FF3344"}`, borderRadius: 20, padding: "4px 10px" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: open ? "#00FF88" : "#FF3344", boxShadow: `0 0 6px ${open ? "#00FF88" : "#FF3344"}`, display: "inline-block" }} />
+              <span style={{ fontFamily: "var(--font-sub)", fontSize: 9, fontWeight: 700, color: open ? "#00FF88" : "#FF3344" }}>{open ? "ABIERTO" : "CERRADO"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Address */}
+        <div style={{ marginBottom: 12, padding: "10px 12px", background: "var(--hero-bg)", borderRadius: 10, border: "1px solid var(--border-subtle)" }}>
+          <div style={{ fontFamily: "var(--font-sub)", fontSize: 10, color: "var(--text-muted)", marginBottom: 3, textTransform: "uppercase", letterSpacing: 1 }}>Dirección</div>
+          <div style={{ fontFamily: "var(--font-body)", fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Calle 1 #10-47 Estambul</div>
+          <div style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--text-secondary)" }}>Buga, Valle del Cauca</div>
+        </div>
+
+        {/* Schedule */}
+        <div>
+          <div style={{ fontFamily: "var(--font-sub)", fontSize: 10, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Horario</div>
+          {[["Lun – Jue","4:00 PM – 12:00 AM"],["Viernes","4:00 PM – 1:00 AM"],["Sábado","4:00 PM – 2:00 AM"],["Domingo","4:00 PM – 12:00 AM"]].map(([d,h]) => (
+            <div key={d} style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--font-body)", fontSize: 12, padding: "3px 0", borderBottom: "1px solid var(--border-subtle)", color: "var(--text-secondary)" }}>
+              <span style={{ color: "var(--fucsia)", fontWeight: 600 }}>{d}</span><span>{h}</span>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -459,17 +508,21 @@ function SectionRedes({ dark }: { dark: boolean }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
         {socials.map((s) => (
-          <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+          <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block", height: "100%" }}>
             <div className="social-card" style={{ borderColor: s.color, boxShadow: dark ? `0 0 15px ${s.glow}` : `0 2px 12px rgba(0,0,0,0.1)`, background: cardBg }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", background: s.invert && dark ? "#fff" : "transparent" }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: s.invert ? 12 : 0, display: "flex", alignItems: "center", justifyContent: "center",
+                background: s.invert ? "#fff" : "transparent",
+                boxShadow: s.invert ? (dark ? `0 0 14px ${s.glow}` : "0 2px 10px rgba(0,0,0,0.15)") : "none",
+              }}>
                 <img src={s.icon} alt={s.name}
-                  style={{ width: s.invert ? 34 : 44, height: s.invert ? 34 : 44, filter: s.invert && dark ? "none" : iconF, objectFit: "contain" }} />
+                  style={{ width: 48, height: 48, objectFit: "contain", filter: s.invert ? "none" : iconF }} />
               </div>
               <div style={{ fontFamily: "var(--font-sub)", fontSize: 14, fontWeight: 700, color: dark ? s.color : "#111", textShadow: dark ? `0 0 8px ${s.glow}` : "none" }}>{s.name}</div>
-              <div style={{ fontFamily: "var(--font-body)", fontSize: 10, color: textSub }}>{s.handle}</div>
-              <div style={{ fontFamily: "var(--font-price)", fontSize: 14, color: dark ? s.color : "#111", fontWeight: 700 }}>{s.followers}</div>
+              {s.handle && <div style={{ fontFamily: "var(--font-body)", fontSize: 10, color: textSub }}>{s.handle}</div>}
+              {s.followers && <div style={{ fontFamily: "var(--font-price)", fontSize: 14, color: dark ? s.color : "#111", fontWeight: 700 }}>{s.followers}</div>}
               <div style={{ background: dark ? s.color : "#000", color: "#fff", borderRadius: 20, padding: "5px 14px", fontSize: 11, fontFamily: "var(--font-sub)", fontWeight: 700, boxShadow: dark ? `0 0 10px ${s.glow}` : "none", marginTop: 4 }}>
-                Síguenos
+                {s.ctaLabel}
               </div>
             </div>
           </a>
@@ -483,9 +536,12 @@ function SectionRedes({ dark }: { dark: boolean }) {
   );
 }
 
+const cremososFlavors = ["Milo", "Oreo", "Café", "Chocorramo"];
+
 function SectionMenu() {
   const [menuView, setMenuView] = useState<"granizados" | "cocteleria">("granizados");
   const [cat, setCat] = useState("licor");
+  const [flavorPicker, setFlavorPicker] = useState(false);
   const cats = [
     { id: "licor", label: "CON LICOR" },
     { id: "sinLicor", label: "SIN LICOR" },
@@ -528,18 +584,31 @@ function SectionMenu() {
 
           <div className="menu-product-grid">
             {items.map((item) => (
-              <div key={item.name} className="card menu-product-card">
+              <div
+                key={item.name}
+                className="card menu-product-card"
+                style={{ cursor: "pointer" }}
+                onClick={() => window.open(orderWhatsAppLink(item.name, item.ingredients), "_blank", "noopener,noreferrer")}
+              >
                 <div className="menu-product-image">
                   <img src={item.photo ?? logoNeon} alt={item.name} />
                 </div>
                 <div className="menu-product-name">{item.name}</div>
                 <div className="menu-product-ingredients">{item.ingredients}</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 6, background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.4)", borderRadius: 20, padding: "4px 10px", width: "100%" }}>
+                  <div style={{ width: 16, height: 16, backgroundColor: "#25D366", WebkitMaskImage: `url(${iconWA})`, maskImage: `url(${iconWA})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
+                  <span style={{ fontFamily: "var(--font-sub)", fontSize: 9, fontWeight: 700, color: "#25D366" }}>PEDIR</span>
+                </div>
               </div>
             ))}
             {cat === "cremosos" && (
-              <div className="cremosos-text-card">
+              <div className="cremosos-text-card" style={{ cursor: "pointer" }} onClick={() => setFlavorPicker(true)}>
                 <div className="menu-product-name">CREMOSOS SIN LICOR</div>
                 <div className="menu-product-ingredients">Milo · Oreo · Café · Chocorramo</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.4)", borderRadius: 20, padding: "4px 10px", width: "100%" }}>
+                  <div style={{ width: 16, height: 16, backgroundColor: "#25D366", WebkitMaskImage: `url(${iconWA})`, maskImage: `url(${iconWA})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
+                  <span style={{ fontFamily: "var(--font-sub)", fontSize: 9, fontWeight: 700, color: "#25D366" }}>ELEGIR SABOR Y PEDIR</span>
+                </div>
               </div>
             )}
           </div>
@@ -574,16 +643,103 @@ function SectionMenu() {
           </div>
         </div>
       )}
+
+      {flavorPicker && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20 }}
+          onClick={() => setFlavorPicker(false)}
+        >
+          <div
+            style={{ background: "var(--bg-card)", border: "1.5px solid var(--fucsia)", borderRadius: 16, padding: 20, width: "100%", maxWidth: 320, boxShadow: "0 0 30px rgba(255,0,255,0.3)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--text-primary)", letterSpacing: 1, marginBottom: 4 }}>
+              ELIGE TU SABOR
+            </div>
+            <div style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--text-secondary)", marginBottom: 14 }}>
+              CREMOSOS SIN LICOR
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {cremososFlavors.map((flavor) => (
+                <button
+                  key={flavor}
+                  onClick={() => {
+                    setFlavorPicker(false);
+                    window.open(orderWhatsAppLink("CREMOSO SIN LICOR", `Sabor: ${flavor}`), "_blank", "noopener,noreferrer");
+                  }}
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    background: "var(--hero-bg)", border: "1px solid var(--border-subtle)", borderRadius: 10,
+                    padding: "10px 14px", fontFamily: "var(--font-sub)", fontSize: 13, fontWeight: 700,
+                    color: "var(--text-primary)", cursor: "pointer",
+                  }}
+                >
+                  {flavor}
+                  <div style={{ width: 18, height: 18, backgroundColor: "#25D366", WebkitMaskImage: `url(${iconWA})`, maskImage: `url(${iconWA})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setFlavorPicker(false)}
+              style={{ marginTop: 14, width: "100%", background: "transparent", border: "1px solid var(--border-subtle)", borderRadius: 10, padding: "8px", fontFamily: "var(--font-sub)", fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", cursor: "pointer" }}
+            >
+              CANCELAR
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
 
 // ── WhatsApp float ────────────────────────────────────────────────────────────
+// TODO: reemplazar por el número real de WhatsApp de Buga cuando esté disponible.
+const WHATSAPP_NUMBER_BUGA = "573117672353";
+
 function WhatsAppFloat() {
+  const [open, setOpen] = useState(false);
+
   return (
-    <a href="https://wa.me/573117672353" target="_blank" rel="noopener noreferrer" className="whatsapp-float" aria-label="WhatsApp">
-      <img src={iconWA} alt="WhatsApp" style={{ width: 28, height: 28, filter: "brightness(0) invert(1)" }} />
-    </a>
+    <>
+      {open && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 98 }}
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {open && (
+        <div style={{
+          position: "fixed", bottom: 142, right: 16, zIndex: 99,
+          display: "flex", flexDirection: "column", gap: 8,
+          background: "var(--bg-card)", border: "1px solid rgba(37,211,102,0.4)",
+          borderRadius: 14, padding: 10, boxShadow: "0 0 20px rgba(37,211,102,0.3)",
+          minWidth: 170,
+        }}>
+          <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer"
+            onClick={() => setOpen(false)}
+            style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", padding: "8px 10px", borderRadius: 10, background: "var(--hero-bg)", fontFamily: "var(--font-sub)", fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+            <img src={iconWA} alt="" style={{ width: 18, height: 18, filter: "brightness(0) saturate(100%) invert(64%) sepia(59%) saturate(478%) hue-rotate(93deg) brightness(93%) contrast(92%)" }} />
+            WhatsApp Tulúa
+          </a>
+          <a href={`https://wa.me/${WHATSAPP_NUMBER_BUGA}`} target="_blank" rel="noopener noreferrer"
+            onClick={() => setOpen(false)}
+            style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", padding: "8px 10px", borderRadius: 10, background: "var(--hero-bg)", fontFamily: "var(--font-sub)", fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+            <img src={iconWA} alt="" style={{ width: 18, height: 18, filter: "brightness(0) saturate(100%) invert(64%) sepia(59%) saturate(478%) hue-rotate(93deg) brightness(93%) contrast(92%)" }} />
+            WhatsApp Buga
+          </a>
+        </div>
+      )}
+
+      <button
+        className="whatsapp-float"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="WhatsApp"
+        style={{ border: "none" }}
+      >
+        <img src={iconWA} alt="WhatsApp" style={{ width: 28, height: 28, filter: "brightness(0) invert(1)" }} />
+      </button>
+    </>
   );
 }
 
@@ -608,7 +764,7 @@ export default function App() {
   }, [dark]);
 
   useEffect(() => {
-    const sectionIds = ["inicio", "sucursales", "redes", "menu"];
+    const sectionIds = ["inicio", "menu", "sucursales", "redes"];
     const observers: IntersectionObserver[] = [];
     sectionIds.forEach((id) => {
       const el = document.getElementById(id);
@@ -655,11 +811,11 @@ export default function App() {
       <main ref={scrollRef} className="main-scroll" style={{ flex: 1, overflowY: "auto", background: "var(--bg-primary)", transition: "background 0.5s ease" }}>
         <SectionInicio />
         <div style={{ height: 1, background: "var(--border-subtle)", margin: "0 20px" }} />
+        <SectionMenu />
+        <div style={{ height: 1, background: "var(--border-subtle)", margin: "0 20px" }} />
         <SectionSucursales />
         <div style={{ height: 1, background: "var(--border-subtle)", margin: "0 20px" }} />
         <SectionRedes dark={dark} />
-        <div style={{ height: 1, background: "var(--border-subtle)", margin: "0 20px" }} />
-        <SectionMenu />
       </main>
 
       {/* ── Footer ── */}
