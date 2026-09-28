@@ -917,7 +917,7 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
           <button type="button" className="add-btn stretched" onClick={handle}
             aria-label={`${multi ? "Elegir opción de" : "Agregar"} ${product.name} al carrito, ${priceLabel(product)}`}>
             <Icon name={added ? "check" : "plus"} size={16} strokeWidth={2.5} />
-            <span>{added ? "Listo" : multi ? "Elegir" : "Agregar"}</span>
+            <span>{added ? "Listo" : "Agregar"}</span>
           </button>
         </div>
       </div>
