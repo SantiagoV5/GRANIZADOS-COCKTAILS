@@ -869,7 +869,7 @@ function PromoCard({ promo, status, onAdd }: { promo: Promo; status: OpenStatus;
         <span className="promo-info">{promo.info}</span>
         {today ? <span className="promo-today">¡Hoy!</span> : null}
       </span>
-      {promo.product && <span className="promo-cta"><Icon name="plus" size={14} /> Elegir</span>}
+      {promo.product && <span className="promo-cta"><Icon name="plus" size={14} /> Agregar</span>}
     </>
   );
 
@@ -917,7 +917,7 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
           <button type="button" className="add-btn stretched" onClick={handle}
             aria-label={`${multi ? "Elegir opción de" : "Agregar"} ${product.name} al carrito, ${priceLabel(product)}`}>
             <Icon name={added ? "check" : "plus"} size={16} strokeWidth={2.5} />
-            <span>{added ? "Listo" : "Elegir"}</span>
+            <span>{added ? "Listo" : multi ? "Elegir" : "Agregar"}</span>
           </button>
         </div>
       </div>
@@ -1320,7 +1320,7 @@ function VariantPicker({ product, status, onClose, onConfirm }: {
             </div>
           </div>
           <div className="sheet-foot">
-            <button type="submit" className="btn-primary">Elegir · {money(variant.price * qty)}</button>
+            <button type="submit" className="btn-primary">Agregar al carrito · {money(variant.price * qty)}</button>
           </div>
         </form>
       )}
