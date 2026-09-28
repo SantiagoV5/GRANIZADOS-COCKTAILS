@@ -232,16 +232,35 @@ const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
 ];
 
 // ── promociones ──────────────────────────────────────────────────────────────
-type Promo = { day: string; weekday: number; photo: string; color: string; alt: string; info: string; product: Product | null };
+type Promo = { day: string; weekday: number; photo: string; color: string; alt: string; product: Product | null };
 
 const promos: Promo[] = [
+  {
+    day: "VIERNES",
+    weekday: 5,
+    photo: promoViernes,
+    color: "#FF00FF",
+    alt: "Viernes de promo: 2 granizados por $20.000, 3 por $30.000, 4 por $40.000. Solo gomas.",
+    product: {
+      id: "promo-viernes",
+      name: "PROMO VIERNES · GRANIZADOS CON GOMAS",
+      desc: "Solo gomas. Escribe los sabores en las notas del pedido.",
+      context: "Promo viernes",
+      kind: "granizado",
+      photo: promoViernes,
+      variants: [
+        { id: "2", label: "2 granizados", price: K(20) },
+        { id: "3", label: "3 granizados", price: K(30) },
+        { id: "4", label: "4 granizados", price: K(40) },
+      ],
+    },
+  },
   {
     day: "MARTES",
     weekday: 2,
     photo: promoMartes,
     color: "#FF00FF",
     alt: "Martes de promo en cremosos: 2 por $30.000. Sabores Milo, Café, Oreo, Chocorramo y Baileys.",
-    info: "2 cremosos por $30.000",
     product: {
       id: "promo-martes",
       name: "PROMO MARTES · 2 CREMOSOS",
@@ -258,29 +277,7 @@ const promos: Promo[] = [
     photo: promoJueves,
     color: "#0066FF",
     alt: "Jueves: domicilio gratis.",
-    info: "Domicilio GRATIS",
     product: null,
-  },
-  {
-    day: "VIERNES",
-    weekday: 5,
-    photo: promoViernes,
-    color: "#FF00FF",
-    alt: "Viernes de promo: 2 granizados por $20.000, 3 por $30.000, 4 por $40.000. Solo gomas.",
-    info: "2 × $20.000 · solo gomas",
-    product: {
-      id: "promo-viernes",
-      name: "PROMO VIERNES · GRANIZADOS CON GOMAS",
-      desc: "Solo gomas. Escribe los sabores en las notas del pedido.",
-      context: "Promo viernes",
-      kind: "granizado",
-      photo: promoViernes,
-      variants: [
-        { id: "2", label: "2 granizados", price: K(20) },
-        { id: "3", label: "3 granizados", price: K(30) },
-        { id: "4", label: "4 granizados", price: K(40) },
-      ],
-    },
   },
 ];
 
@@ -375,7 +372,6 @@ const CATALOG = new Map<string, Product>(
 );
 
 // ── redes ────────────────────────────────────────────────────────────────────
-const INSTAGRAM_HANDLE = "granizados.buga.tulua";
 const INSTAGRAM_URL = "https://www.instagram.com/granizados.buga.tulua";
 
 const socials = [
@@ -588,71 +584,6 @@ function buildOrderWhatsAppMessage(items: ResolvedLine[], form: OrderForm, freeD
   return sections.join("\n");
 }
 
-// ── Instagram reels ──────────────────────────────────────────────────────────
-// La "Instagram Basic Display API" fue cerrada por Meta (dic. 2024). La alternativa vigente
-// es la "Instagram API with Instagram Login" (cuenta Business/Creator). Para activarla, crear
-// `.env.local` con VITE_INSTAGRAM_TOKEN=<token de larga duración>. OJO: al no haber backend,
-// el token queda visible en el bundle (sólo permite leer las publicaciones propias) y vence a
-// los 60 días — hay que renovarlo. Sin token se muestra MANUAL_REELS o un acceso directo.
-type Reel = { id: string; permalink: string; thumbnail: string; caption: string };
-
-/** Fallback sin token: pega aquí reels a mano ({ id, permalink, thumbnail: imagen importada, caption }). */
-const MANUAL_REELS: Reel[] = [];
-
-const IG_TOKEN = import.meta.env.VITE_INSTAGRAM_TOKEN;
-const REELS_CACHE_KEY = "gc-reels-v1";
-const REELS_TTL = 60 * 60 * 1000; // 1 h
-
-type IgMedia = {
-  id: string;
-  caption?: string;
-  media_type: string;
-  media_product_type?: string;
-  permalink: string;
-  thumbnail_url?: string;
-  media_url?: string;
-};
-
-async function fetchInstagramReels(token: string, limit = 5): Promise<Reel[]> {
-  const fields = "id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url";
-  const res = await fetch(`https://graph.instagram.com/me/media?fields=${fields}&limit=30&access_token=${encodeURIComponent(token)}`);
-  if (!res.ok) throw new Error(`Instagram API ${res.status}`);
-  const json = (await res.json()) as { data?: IgMedia[] };
-  return (json.data ?? [])
-    .filter((m) => m.media_product_type === "REELS" || m.media_type === "VIDEO")
-    .filter((m) => m.thumbnail_url || m.media_url)
-    .slice(0, limit)
-    .map((m) => ({ id: m.id, permalink: m.permalink, thumbnail: (m.thumbnail_url ?? m.media_url)!, caption: m.caption ?? "" }));
-}
-
-type ReelsState = { status: "idle" | "loading" | "ready" | "error"; reels: Reel[] };
-
-function useInstagramReels(active: boolean): ReelsState {
-  const [state, setState] = useState<ReelsState>(() =>
-    IG_TOKEN ? { status: "idle", reels: [] } : { status: "ready", reels: MANUAL_REELS },
-  );
-  const started = useRef(false);
-
-  useEffect(() => {
-    if (!active || !IG_TOKEN || started.current) return;
-    started.current = true;
-    const cached = load<{ at: number; reels: Reel[] } | null>(REELS_CACHE_KEY, null);
-    if (cached && Date.now() - cached.at < REELS_TTL && cached.reels.length) {
-      setState({ status: "ready", reels: cached.reels });
-      return;
-    }
-    setState({ status: "loading", reels: [] });
-    fetchInstagramReels(IG_TOKEN)
-      .then((reels) => {
-        save(REELS_CACHE_KEY, { at: Date.now(), reels });
-        setState({ status: "ready", reels });
-      })
-      .catch(() => setState({ status: "error", reels: MANUAL_REELS }));
-  }, [active]);
-
-  return state;
-}
-
 // ═════════════════════════════════════════════════════════════════════════════
 // 4. UI PRIMITIVES
 // ═════════════════════════════════════════════════════════════════════════════
@@ -856,30 +787,22 @@ function Hero({ status }: { status: OpenStatus }) {
   );
 }
 
-function PromoCard({ promo, status, onAdd }: { promo: Promo; status: OpenStatus; onAdd: AddHandler }) {
-  const today = status.sessionDay === promo.weekday;
+function PromoCard({ promo, onAdd }: { promo: Promo; onAdd: AddHandler }) {
   const style = { "--promo-color": promo.color, "--promo-ink": promo.color === "#0066FF" ? "#fff" : "#000" } as CSSProperties;
-  const body = (
-    <>
+  return (
+    <article className="promo-card" style={style}>
       <span className="promo-day">{promo.day}</span>
       <span className="promo-image">
         <img src={promo.photo} alt={promo.alt} width={320} height={420} loading="lazy" decoding="async" />
       </span>
-      <span className="promo-meta">
-        <span className="promo-info">{promo.info}</span>
-        {today ? <span className="promo-today">¡Hoy!</span> : null}
-      </span>
-      {promo.product && <span className="promo-cta"><Icon name="plus" size={14} /> Agregar</span>}
-    </>
-  );
-
-  return promo.product ? (
-    <button type="button" className="promo-card" style={style} onClick={() => onAdd(promo.product!)}
-      aria-label={`Promo ${promo.day.toLowerCase()}: ${promo.info}. Agregar al carrito`}>
-      {body}
-    </button>
-  ) : (
-    <div className="promo-card promo-card--static" style={style}>{body}</div>
+      {promo.product && (
+        <button type="button" className="add-btn stretched promo-add" onClick={() => onAdd(promo.product!)}
+          aria-label={`Agregar ${promo.product.name} al pedido`}>
+          <Icon name="plus" size={16} strokeWidth={2.5} />
+          <span>Agregar</span>
+        </button>
+      )}
+    </article>
   );
 }
 
@@ -938,7 +861,7 @@ function SectionInicio({ status, onAdd }: { status: OpenStatus; onAdd: AddHandle
           <div className="rail rail--promos" role="list" aria-labelledby="promos-title">
             {promos.map((p) => (
               <div role="listitem" key={p.day} className="rail-item">
-                <PromoCard promo={p} status={status} onAdd={onAdd} />
+                <PromoCard promo={p} onAdd={onAdd} />
               </div>
             ))}
           </div>
@@ -1171,52 +1094,7 @@ function SectionSucursales({ status, onOrderHere }: { status: OpenStatus; onOrde
   );
 }
 
-// ── redes + reels ────────────────────────────────────────────────────────────
-function ReelsWidget() {
-  const [ref, inView] = useInView<HTMLDivElement>("400px");
-  const { status, reels } = useInstagramReels(inView);
-
-  return (
-    <div ref={ref} className="reels">
-      <div className="reels-head">
-        <h3 id="reels-title">Últimos reels</h3>
-        <a href={`${INSTAGRAM_URL}/reels/`} target="_blank" rel="noopener noreferrer" className="text-link">
-          Ver todos<span className="sr-only"> los reels en Instagram (abre en una pestaña nueva)</span> <Icon name="external" size={14} />
-        </a>
-      </div>
-
-      {status === "loading" || status === "idle" ? (
-        <div className="rail rail--reels" aria-busy="true" aria-label="Cargando reels">
-          {Array.from({ length: 4 }, (_, i) => <div key={i} className="reel-tile skeleton" />)}
-        </div>
-      ) : reels.length ? (
-        <ul className="rail rail--reels" aria-labelledby="reels-title">
-          {reels.map((r) => (
-            <li key={r.id} className="rail-item">
-              <a className="reel-tile" href={r.permalink} target="_blank" rel="noopener noreferrer"
-                aria-label={`Ver reel en Instagram: ${r.caption.slice(0, 80) || "sin descripción"}`}>
-                <img src={r.thumbnail} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" />
-                <span className="reel-play" aria-hidden="true"><Icon name="play" size={22} /></span>
-                {r.caption && <span className="reel-caption" aria-hidden="true">{r.caption}</span>}
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <a className="reels-cta" href={`${INSTAGRAM_URL}/reels/`} target="_blank" rel="noopener noreferrer">
-          <span className="reels-cta-icon"><img src={iconIG} alt="" width={40} height={40} /></span>
-          <span>
-            <strong>Mira nuestros reels en @{INSTAGRAM_HANDLE}</strong>
-            <span>Nuevos sabores, promos y el ambiente de la sede.</span>
-          </span>
-          <Icon name="external" size={18} />
-          <span className="sr-only">(abre en una pestaña nueva)</span>
-        </a>
-      )}
-    </div>
-  );
-}
-
+// ── redes ────────────────────────────────────────────────────────────────────
 function SectionRedes({ branch }: { branch: Branch }) {
   return (
     <section id="redes" className="section section--redes" aria-labelledby="redes-title">
@@ -1229,8 +1107,6 @@ function SectionRedes({ branch }: { branch: Branch }) {
             </SectionHeading>
           </div>
         </Reveal>
-
-        <Reveal><ReelsWidget /></Reveal>
 
         <ul className="social-grid">
           {socials.map((s, i) => (
