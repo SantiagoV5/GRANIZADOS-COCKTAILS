@@ -179,19 +179,15 @@ const GRANIZADO_VARIANTS: Variant[] = [
 ];
 
 const recommended: Product[] = [
-  { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, context: "Recomendado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
-  { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, context: "Recomendado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
-  { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, badge: "Con o sin licor", context: "Recomendado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
-  { id: "rec-fresada", name: "FRESADA", photo: imgFresada, badge: "Con o sin licor", context: "Recomendado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
-];
-
-/** Sección propia (no compite por espacio de imagen con "Recomendados"). */
-const festItems: Product[] = [
-  { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, context: "Granizado Fest 2026", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
+  { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, context: "Recomendado", kind: "granizado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
+  { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, context: "Recomendado", kind: "granizado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
+  { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
+  { id: "rec-fresada", name: "FRESADA", photo: imgFresada, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
+  { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, badge: "🎉 Fest 2026", context: "Recomendado", kind: "granizado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
 ];
 
 const granizado = (id: string, name: string, desc: string, photo: string, context: string): Product => ({
-  id, name, desc, photo, context, variants: GRANIZADO_VARIANTS,
+  id, name, desc, photo, context, kind: "granizado", variants: GRANIZADO_VARIANTS,
 });
 
 const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
@@ -251,6 +247,7 @@ const promos: Promo[] = [
       name: "PROMO MARTES · 2 CREMOSOS",
       desc: "Sabores: Milo, Café, Oreo, Chocorramo o Baileys. Escribe los sabores en las notas del pedido.",
       context: "Promo martes",
+      kind: "granizado",
       photo: promoMartes,
       variants: single(K(30)),
     },
@@ -276,6 +273,7 @@ const promos: Promo[] = [
       name: "PROMO VIERNES · GRANIZADOS CON GOMAS",
       desc: "Solo gomas. Escribe los sabores en las notas del pedido.",
       context: "Promo viernes",
+      kind: "granizado",
       photo: promoViernes,
       variants: [
         { id: "2", label: "2 granizados", price: K(20) },
@@ -370,7 +368,6 @@ const cocktailProducts: Product[] = cocktailCategories.flatMap((cat) =>
 const CATALOG = new Map<string, Product>(
   [
     ...recommended,
-    ...festItems,
     ...granizadoCategories.flatMap((c) => c.items),
     ...promos.flatMap((p) => (p.product ? [p.product] : [])),
     ...cocktailProducts,
@@ -939,21 +936,6 @@ function SectionInicio({ status, onAdd }: { status: OpenStatus; onAdd: AddHandle
             {promos.map((p) => (
               <div role="listitem" key={p.day} className="rail-item">
                 <PromoCard promo={p} status={status} onAdd={onAdd} />
-              </div>
-            ))}
-          </div>
-        </Reveal>
-
-        <Reveal>
-          <div className="fest-banner">
-            <SectionHeading id="fest-title" eyebrow="🎉 Edición especial" title="Granizado Fest 2026" className="section-heading--fest" />
-          </div>
-        </Reveal>
-        <Reveal delay={60}>
-          <div className="rail rail--products rail--fest" role="list" aria-labelledby="fest-title">
-            {festItems.map((p) => (
-              <div role="listitem" key={p.id} className="rail-item">
-                <ProductCard product={p} onAdd={onAdd} compact />
               </div>
             ))}
           </div>
