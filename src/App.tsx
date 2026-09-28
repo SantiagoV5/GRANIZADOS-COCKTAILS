@@ -903,14 +903,17 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
       {product.photo && (
         <div className="product-media">
           <img src={product.photo} alt="" width={300} height={400} loading="lazy" decoding="async" />
-          {product.badge && <span className="product-badge">{product.badge}</span>}
         </div>
       )}
       <div className="product-body">
         <h3 className="product-name">{product.name}</h3>
         <p className="product-desc">{product.desc}</p>
+        {product.badge && <span className="product-badge">{product.badge}</span>}
         <div className="product-foot">
-          <span className="price">{priceLabel(product)}</span>
+          <div className="price-with-badge">
+            <span className="price">{priceLabel(product)}</span>
+            {product.context === "Recomendado" && <span className="badge-recomendado">RECOMENDADO</span>}
+          </div>
           <button type="button" className="add-btn stretched" onClick={handle}
             aria-label={`${multi ? "Elegir opción de" : "Agregar"} ${product.name} al carrito, ${priceLabel(product)}`}>
             <Icon name={added ? "check" : "plus"} size={16} strokeWidth={2.5} />
@@ -1076,6 +1079,7 @@ function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
                               <span className="menu-row-name">{item.name}</span>
                               {item.description && <span className="menu-row-desc">{item.description}</span>}
                             </div>
+                            {item.price !== undefined && <span className="menu-row-price">{fmtK(item.price)}</span>}
                           </li>
                         );
                       })}
@@ -1422,13 +1426,13 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
   return (
     <Sheet open={open} onClose={onClose} labelledBy="cart-title" className="sheet--cart">
       <div className="sheet-head">
-        <h2 id="cart-title"><Icon name="bag" size={22} /> Tu carrito</h2>
-        <button type="button" className="icon-btn" onClick={onClose} aria-label="Cerrar carrito"><Icon name="close" /></button>
+        <h2 id="cart-title"><Icon name="bag" size={22} /> Tu pedido</h2>
+        <button type="button" className="icon-btn" onClick={onClose} aria-label="Cerrar pedido"><Icon name="close" /></button>
       </div>
 
       {!items.length ? (
         <div className="sheet-body cart-empty">
-          <p>Tu carrito está vacío.</p>
+          <p>Tu pedido está vacío.</p>
           <p className="muted">Agrega granizados, cocteles o promos desde el menú.</p>
           <button type="button" className="btn-neon" onClick={goToMenu}>Ver menú</button>
         </div>
@@ -1469,7 +1473,7 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
                     </div>
                   </fieldset>
 
-                  <ul className="cart-list" aria-label="Productos en el carrito">
+                  <ul className="cart-list" aria-label="Productos en tu pedido">
                     {items.map((l) => {
                       const label = `${l.product.name}${l.variant.label ? `, ${l.variant.label}` : ""}`;
                       return (
@@ -1731,7 +1735,7 @@ export default function App() {
       {cartCount > 0 && (
         <button type="button" className="cart-bar" onClick={() => setCartOpen(true)}>
           <span className="cart-bar-count" key={cartCount} aria-hidden="true">{cartCount}</span>
-          <span className="cart-bar-label">Ver carrito <small>· pedido a {BRANCHES[order.branch].name}</small></span>
+          <span className="cart-bar-label">Ver tu pedido <small>· pedido a {BRANCHES[order.branch].name}</small></span>
           <strong>{money(cartTotal)}</strong>
           <span className="sr-only">, {cartCount} productos</span>
         </button>
@@ -1753,7 +1757,7 @@ export default function App() {
           <div key={toast.id} className="toast">
             <Icon name="check" size={18} strokeWidth={2.5} />
             <span>Agregado: {toast.text}</span>
-            <button type="button" onClick={() => { setToast(null); setCartOpen(true); }}>Ver carrito</button>
+            <button type="button" onClick={() => { setToast(null); setCartOpen(true); }}>Ver tu pedido</button>
           </div>
         )}
       </div>
