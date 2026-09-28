@@ -727,6 +727,18 @@ button svg, a svg { flex-shrink: 0; }
   letter-spacing: .5px;
 }
 
+.fest-banner {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--neon-blue);
+}
+.section-heading--fest { margin: 0; }
+.section-heading--fest .eyebrow { color: var(--blue-text); }
+.section-heading--fest h2 { text-shadow: var(--text-neon-blue); }
+.rail--fest { margin-top: 12px; }
+
 /* ── product cards ── */
 .product-card {
   position: relative;

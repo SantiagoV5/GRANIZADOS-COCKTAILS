@@ -161,6 +161,8 @@ type Product = {
   badge?: string;
   /** Categoría legible (se usa en el carrito y en el mensaje de WhatsApp). */
   context?: string;
+  /** "cocktail" = coctelería/bebidas (solo recoger). Sin definir = granizado (admite domicilio). */
+  kind?: "granizado" | "cocktail";
   variants: Variant[];
 };
 
@@ -177,11 +179,15 @@ const GRANIZADO_VARIANTS: Variant[] = [
 ];
 
 const recommended: Product[] = [
-  { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, badge: "Granizado Fest 2026", context: "Recomendado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
   { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, context: "Recomendado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
   { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, context: "Recomendado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
   { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, badge: "Con o sin licor", context: "Recomendado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
   { id: "rec-fresada", name: "FRESADA", photo: imgFresada, badge: "Con o sin licor", context: "Recomendado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
+];
+
+/** Sección propia (no compite por espacio de imagen con "Recomendados"). */
+const festItems: Product[] = [
+  { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, context: "Granizado Fest 2026", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
 ];
 
 const granizado = (id: string, name: string, desc: string, photo: string, context: string): Product => ({
@@ -355,6 +361,7 @@ const cocktailProducts: Product[] = cocktailCategories.flatMap((cat) =>
       name: item.name,
       desc: item.description ?? "",
       context: cat.title.charAt(0) + cat.title.slice(1).toLowerCase(),
+      kind: "cocktail" as const,
       variants: single(item.price!),
     })),
 );
@@ -363,6 +370,7 @@ const cocktailProducts: Product[] = cocktailCategories.flatMap((cat) =>
 const CATALOG = new Map<string, Product>(
   [
     ...recommended,
+    ...festItems,
     ...granizadoCategories.flatMap((c) => c.items),
     ...promos.flatMap((p) => (p.product ? [p.product] : [])),
     ...cocktailProducts,
@@ -723,9 +731,9 @@ function Reveal({ children, className = "", delay = 0 }: { children: ReactNode; 
   );
 }
 
-function SectionHeading({ id, eyebrow, title, children }: { id: string; eyebrow?: string; title: string; children?: ReactNode }) {
+function SectionHeading({ id, eyebrow, title, children, className }: { id: string; eyebrow?: string; title: string; children?: ReactNode; className?: string }) {
   return (
-    <div className="section-heading">
+    <div className={`section-heading${className ? ` ${className}` : ""}`}>
       {eyebrow && <p className="eyebrow">{eyebrow}</p>}
       <h2 id={id} tabIndex={-1}>{title}</h2>
       {children}
@@ -931,6 +939,21 @@ function SectionInicio({ status, onAdd }: { status: OpenStatus; onAdd: AddHandle
             {promos.map((p) => (
               <div role="listitem" key={p.day} className="rail-item">
                 <PromoCard promo={p} status={status} onAdd={onAdd} />
+              </div>
+            ))}
+          </div>
+        </Reveal>
+
+        <Reveal>
+          <div className="fest-banner">
+            <SectionHeading id="fest-title" eyebrow="🎉 Edición especial" title="Granizado Fest 2026" className="section-heading--fest" />
+          </div>
+        </Reveal>
+        <Reveal delay={60}>
+          <div className="rail rail--products rail--fest" role="list" aria-labelledby="fest-title">
+            {festItems.map((p) => (
+              <div role="listitem" key={p.id} className="rail-item">
+                <ProductCard product={p} onAdd={onAdd} compact />
               </div>
             ))}
           </div>
@@ -1359,6 +1382,8 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
   const freeDelivery = status.sessionDay === 4;
   const isDelivery = order.delivery === "domicilio";
   const branch = BRANCHES[order.branch];
+  /** Domicilio solo aplica si el carrito trae únicamente granizados (coctelería/bebidas → solo recoger). */
+  const canDeliver = items.length > 0 && items.every((l) => l.product.kind !== "cocktail");
 
   useEffect(() => {
     if (!open) {
@@ -1367,6 +1392,10 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
       setStep("items");
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!canDeliver && order.delivery === "domicilio") setOrder((o) => ({ ...o, delivery: "recoger" }));
+  }, [canDeliver, order.delivery, setOrder]);
 
   const update = <F extends keyof OrderForm>(field: F, value: OrderForm[F]) => setOrder((o) => ({ ...o, [field]: value }));
 
@@ -1496,9 +1525,14 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
                 <>
                   <RadioCards legend="Entrega" name="delivery" value={order.delivery} onChange={(v) => update("delivery", v)}
                     options={[
-                      { value: "domicilio", label: "Domicilio", hint: freeDelivery ? "¡Hoy jueves es gratis!" : "Valor según zona" },
+                      ...(canDeliver
+                        ? [{ value: "domicilio" as const, label: "Domicilio", hint: freeDelivery ? "¡Hoy jueves es gratis!" : "Valor según zona" }]
+                        : []),
                       { value: "recoger", label: "Recoger en sede", hint: `Sede ${branch.name}` },
                     ]} />
+                  {!canDeliver && items.some((l) => l.product.kind === "cocktail") && (
+                    <p className="muted small">Coctelería y bebidas solo están disponibles para recoger en sede.</p>
+                  )}
 
                   {isDelivery && (
                     <div className="field">
