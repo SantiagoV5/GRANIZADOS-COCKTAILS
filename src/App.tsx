@@ -298,7 +298,7 @@ const cocktailCategories: CocktailCategory[] = [
     { name: "Frutos Verdes / Whisky", price: K(16) },
   ] },
   { title: "MICHELADAS", items: [
-    { name: "Micheladas con fruta", description: "Mango biche, Maracuyá, Cerezada" },
+    { name: "Micheladas con Fruta", description: "Mango Biche, Maracuyá, Cerezada" },
     { name: "Cerveza Nacional", price: K(14) },
     { name: "Cerveza Importada", price: K(16) },
   ] },
@@ -321,9 +321,9 @@ const cocktailCategories: CocktailCategory[] = [
     { name: "LA PROHIBIDA (5-6 PERSONAS)", price: K(100), description: "Granizado de preferencia, 1 four loko, jeringas de licor, gomas y dulces" },
   ] },
   { title: "GRANIZADO BOMBA", items: [
-    { name: "Fresa Boom o Mango Party", description: "Granizado con licor, coronita o smirnoff, fruta picada, rodajas de naranja, perlas explosivas, paleta de corazón" },
-    { name: "Con Coronita", price: K(22) },
-    { name: "Con Smirnoff", price: K(26) },
+    { name: "FRESA BOOM O MANGO PARTY", description: "Granizado con licor, coronita o smirnoff, fruta picada, rodajas de naranja, perlas explosivas, paleta de corazón" },
+    { name: "CON CORONITA", price: K(22) },
+    { name: "CON SMIRNOFF", price: K(26) },
   ] },
   { title: "PECERAS LOCAS (LÍQUIDAS)", items: [
     { name: "LA EXÓTICA (3 PERSONAS)", price: K(50), description: "2 coronitas o 1 smirnoff, whisky, ron, limón, maracuyá, soda y dulces" },
@@ -343,6 +343,9 @@ const cocktailCategories: CocktailCategory[] = [
     { name: "Bretaña personal", price: K(5) },
   ] },
 ];
+
+/** Izquierda: Cervezas → Cocktails. Derecha: Neveras explosivas → Otras bebidas. */
+const COCKTAIL_COLUMNS: CocktailCategory[][] = [cocktailCategories.slice(0, 4), cocktailCategories.slice(4)];
 
 const slug = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -939,8 +942,8 @@ function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
         ) : (
           <>
             <div className="segmented" role="group" aria-label="Tipo de menú">
-              <button type="button" aria-pressed={view === "granizados"} onClick={() => setView("granizados")}>Granizados</button>
-              <button type="button" aria-pressed={view === "cocteleria"} onClick={() => setView("cocteleria")}>Coctelería y bebidas</button>
+              <button type="button" aria-pressed={view === "granizados"} onClick={() => setView("granizados")}>MENÚ GRANIZADOS</button>
+              <button type="button" aria-pressed={view === "cocteleria"} onClick={() => setView("cocteleria")}>MENÚ COCTELERÍA, BEBIDAS Y MÁS</button>
             </div>
 
             {view === "granizados" ? (
@@ -973,27 +976,32 @@ function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
               </div>
             ) : (
               <div className="menu-panel cocktail-panel" key="cocteleria">
-                {cocktailCategories.map((cat) => (
-                  <div key={cat.title} className="cocktail-category">
-                    <h3>{cat.title}</h3>
-                    <ul className="menu-rows">
-                      {cat.items.map((item) => {
-                        const product = item.price !== undefined ? CATALOG.get(cocktailId(cat, item)) : undefined;
-                        return product && product.kind !== "cocktail" ? (
-                          <MenuRow key={product.id} product={product} onAdd={onAdd} />
-                        ) : (
-                          <li key={item.name} className="menu-row menu-row--info">
-                            <div className="menu-row-text">
-                              <span className="menu-row-name">{item.name}</span>
-                              {item.description && <span className="menu-row-desc">{item.description}</span>}
-                            </div>
-                            {item.price !== undefined && <span className="menu-row-price">{fmtK(item.price)}</span>}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))}
+                <div className="cocktail-heading">
+                  <h3 className="cocktail-heading-title">COCTELERÍA, BEBIDAS Y MÁS</h3>
+                  <button type="button" className="cocktail-back-button" onClick={() => setView("granizados")}>VOLVER</button>
+                </div>
+                <div className="cocktail-columns">
+                  {COCKTAIL_COLUMNS.map((column, ci) => (
+                    <div key={ci} className="cocktail-column">
+                      {column.map((cat) => (
+                        <div key={cat.title} className="cocktail-category">
+                          <h4>{cat.title}</h4>
+                          <ul className="cocktail-items">
+                            {cat.items.map((item) => (
+                              <li key={item.name} className="cocktail-item">
+                                <div className="cocktail-item-line">
+                                  <span className="cocktail-item-name">{item.name}</span>
+                                  {item.price !== undefined && <span className="cocktail-item-price">{fmtK(item.price)}</span>}
+                                </div>
+                                {item.description && <p className="cocktail-item-desc">{item.description}</p>}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </>
