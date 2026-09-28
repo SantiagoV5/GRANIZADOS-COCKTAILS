@@ -179,11 +179,11 @@ const GRANIZADO_VARIANTS: Variant[] = [
 ];
 
 const recommended: Product[] = [
+  { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, badge: "Granizado Fest 2026", context: "Recomendado", kind: "granizado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
   { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, context: "Recomendado", kind: "granizado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
   { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, context: "Recomendado", kind: "granizado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
   { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
   { id: "rec-fresada", name: "FRESADA", photo: imgFresada, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
-  { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, badge: "🎉 Fest 2026", context: "Recomendado", kind: "granizado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
 ];
 
 const granizado = (id: string, name: string, desc: string, photo: string, context: string): Product => ({
