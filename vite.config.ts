@@ -3,7 +3,12 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
 
-const siteConfiguration = {}
+const siteConfiguration: FigmaSiteConfiguration = {
+  language: 'es',
+  title: 'Granizados-Cocktails | Tuluá y Buga',
+  description:
+    'Los mejores granizados y cocteles de Tuluá y Buga. Arma tu pedido y envíalo por WhatsApp a la sede que prefieras.',
+}
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
