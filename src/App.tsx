@@ -923,23 +923,8 @@ function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
     <section id="menu" className="section" aria-labelledby="menu-title">
       <div className="section-inner">
         <Reveal>
-          <SectionHeading id="menu-title" eyebrow="Arma tu pedido" title="Menú">
-            <p className="section-lead">Toca un producto para agregarlo al carrito y envía tu pedido por WhatsApp.</p>
-          </SectionHeading>
+          <SectionHeading id="menu-title" eyebrow="Arma tu pedido" title="Menú" />
         </Reveal>
-
-        <div className="menu-search">
-          <label htmlFor="menu-search-input" className="sr-only">Buscar en el menú</label>
-          <Icon name="search" size={18} />
-          <input id="menu-search-input" type="search" placeholder="Busca un sabor, licor o bebida…" value={query}
-            onChange={(e) => setQuery(e.target.value)} autoComplete="off" enterKeyHint="search" />
-          {query && (
-            <button type="button" className="search-clear" onClick={() => setQuery("")} aria-label="Borrar búsqueda">
-              <Icon name="close" size={16} />
-            </button>
-          )}
-        </div>
-        <p className="sr-only" role="status">{results ? `${results.length} resultados para ${query}` : ""}</p>
 
         {results ? (
           <div className="search-results">
