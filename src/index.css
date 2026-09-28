@@ -727,17 +727,6 @@ button svg, a svg { flex-shrink: 0; }
   letter-spacing: .5px;
 }
 
-.fest-banner {
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  background: var(--panel-bg);
-  border: 1px solid var(--border-card);
-  box-shadow: var(--neon-blue);
-}
-.section-heading--fest { margin: 0; }
-.section-heading--fest .eyebrow { color: var(--blue-text); }
-.section-heading--fest h2 { text-shadow: var(--text-neon-blue); }
-.rail--fest { margin-top: 12px; }
 
 /* ── product cards ── */
 .product-card {
@@ -761,9 +750,8 @@ button svg, a svg { flex-shrink: 0; }
 .product-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s var(--ease-out); }
 .product-card:hover .product-media img { transform: scale(1.06); }
 .product-badge {
-  position: absolute;
-  left: 8px; bottom: 8px;
-  max-width: calc(100% - 16px);
+  align-self: flex-start;
+  max-width: 100%;
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--accent-fill);
@@ -777,6 +765,12 @@ button svg, a svg { flex-shrink: 0; }
 .product-name { margin: 0; font: 400 20px/1.05 var(--font-display); letter-spacing: 1px; color: var(--text-primary); }
 .product-desc { margin: 0; flex: 1; color: var(--text-secondary); font-size: 13px; line-height: 1.4; }
 .product-foot { display: flex; flex-direction: column; align-items: stretch; gap: 8px; margin-top: 6px; }
+.price-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .price {
   font: 700 15px var(--font-price);
   color: var(--accent);
@@ -784,6 +778,18 @@ button svg, a svg { flex-shrink: 0; }
   white-space: nowrap;
 }
 .product-card--compact .price { font-size: 14px; }
+.badge-recomendado {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--accent-fill);
+  color: #fff;
+  font: 700 9px var(--font-sub);
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  box-shadow: 0 0 8px rgba(255, 0, 255, .5);
+  white-space: nowrap;
+}
 
 .add-btn {
   display: inline-flex;
@@ -935,7 +941,11 @@ button svg, a svg { flex-shrink: 0; }
   border: 1px solid var(--border-card);
   background: var(--bg-card);
 }
-@media (min-width: 640px) { .cocktail-panel { grid-template-columns: 1fr 1fr; padding: 24px; } }
+/* Desktop: columna izq = Cervezas→Cocktails, der = Neveras→Micheladas sodificadas; Otras bebidas al final a lo ancho */
+@media (min-width: 640px) {
+  .cocktail-panel { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, auto); grid-auto-flow: column; padding: 24px; }
+  .cocktail-panel > .cocktail-category:last-child { grid-column: 1 / -1; grid-row: 5; }
+}
 .cocktail-category h3 {
   margin: 8px 0 4px;
   color: var(--accent);
@@ -952,7 +962,7 @@ button svg, a svg { flex-shrink: 0; }
   padding: 10px 0;
   border-bottom: 1px solid var(--border-subtle);
 }
-.menu-row--info { grid-template-columns: 1fr; }
+.menu-row--info { grid-template-columns: 1fr auto; }
 .menu-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .menu-row-name { color: var(--text-primary); font: 600 14px/1.3 var(--font-sub); }
 .menu-row-desc { color: var(--text-secondary); font-size: 13px; line-height: 1.35; }
