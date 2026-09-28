@@ -370,11 +370,11 @@ const CATALOG = new Map<string, Product>(
 );
 
 // ── redes ────────────────────────────────────────────────────────────────────
-const INSTAGRAM_HANDLE = "granizados_tulua";
-const INSTAGRAM_URL = "https://www.instagram.com/granizados_tulua";
+const INSTAGRAM_HANDLE = "granizados.buga.tulua";
+const INSTAGRAM_URL = "https://www.instagram.com/granizados.buga.tulua";
 
 const socials = [
-  { id: "ig", name: "Instagram", handle: "@granizados_tulua", followers: "+4K", icon: iconIG, color: "#E1306C", url: INSTAGRAM_URL, backdrop: false },
+  { id: "ig", name: "Instagram", handle: "@granizados.buga.tulua", followers: "+4K", icon: iconIG, color: "#E1306C", url: INSTAGRAM_URL, backdrop: false },
   { id: "tt", name: "TikTok", handle: "@granizados.tulua", followers: "+1K", icon: iconTT, color: "#FF00FF", url: "https://www.tiktok.com/@granizados.tulua", backdrop: true },
   { id: "fb", name: "Facebook", handle: "Granizados Tulúa", followers: "+1K", icon: iconFB, color: "#0066FF", url: "https://www.facebook.com/share/1DhQAddCnE/", backdrop: false },
 ];
