@@ -1068,7 +1068,7 @@ function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
                     <ul className="menu-rows">
                       {cat.items.map((item) => {
                         const product = item.price !== undefined ? CATALOG.get(cocktailId(cat, item)) : undefined;
-                        return product ? (
+                        return product && product.kind !== "cocktail" ? (
                           <MenuRow key={product.id} product={product} onAdd={onAdd} />
                         ) : (
                           <li key={item.name} className="menu-row menu-row--info">
