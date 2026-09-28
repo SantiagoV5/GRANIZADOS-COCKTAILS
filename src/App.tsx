@@ -542,24 +542,45 @@ function buildOrderWhatsAppMessage(items: ResolvedLine[], form: OrderForm, freeD
   const total = items.reduce((sum, l) => sum + l.variant.price * l.quantity, 0);
   const lines = items.map(({ product, variant, quantity }) => {
     const detail = [variant.label, product.context].filter(Boolean).join(" · ");
-    return `• ${quantity}x ${product.name}${detail ? ` (${detail})` : ""} — ${money(variant.price * quantity)}`;
+    return `  • ${quantity}x ${product.name}${detail ? ` (${detail})` : ""} — ${money(variant.price * quantity)}`;
   });
   const isDelivery = form.delivery === "domicilio";
 
-  return [
-    `¡Hola Granizados-Cocktails ${branch.name}! Quiero hacer este pedido:`,
+  const sections = [
+    "📋 *NUEVO PEDIDO - GRANIZADOS COCKTAILS*",
     "",
+    `🏪 *Sede:* ${branch.name}`,
+    "",
+    "*🍹 PRODUCTOS:*",
     ...lines,
     "",
-    `*Total estimado:* ${money(total)}`,
+    "*📍 ENTREGA:*",
+    isDelivery
+      ? `  ${freeDelivery ? "🎉 " : ""}Domicilio${freeDelivery ? " (¡Domicilio gratis!)" : ""}`
+      : `  Recojo en la sede ${branch.name}`,
+    ...(isDelivery ? [`  📌 ${form.address.trim()}`] : []),
     "",
-    isDelivery ? `*Entrega:* Domicilio${freeDelivery ? " (jueves de domi gratis)" : ""}` : `*Entrega:* Recojo en la sede ${branch.name}`,
-    ...(isDelivery ? [`*Dirección:* ${form.address.trim()}`] : []),
-    `*Pago:* ${PAYMENT_LABEL[form.payment]}`,
-    ...(form.notes.trim() ? [`*Notas:* ${form.notes.trim()}`] : []),
-    "",
-    isDelivery && !freeDelivery ? "¿Me confirman disponibilidad y el valor del domicilio? ¡Gracias!" : "¿Me confirman disponibilidad? ¡Gracias!",
-  ].join("\n");
+    "*💳 Método de pago:*",
+    `  ${PAYMENT_LABEL[form.payment]}`,
+  ];
+
+  if (form.notes.trim()) {
+    sections.push("");
+    sections.push("*📝 Notas especiales:*");
+    sections.push(`  ${form.notes.trim()}`);
+  }
+
+  sections.push("");
+  sections.push("*💰 TOTAL:*");
+  sections.push(`  *${money(total)}*`);
+  sections.push("");
+  sections.push(
+    isDelivery && !freeDelivery
+      ? "¿Confirman disponibilidad y valor del domicilio? ¡Gracias! 🙏"
+      : "¿Confirman disponibilidad? ¡Gracias! 🙏"
+  );
+
+  return sections.join("\n");
 }
 
 // ── Instagram reels ──────────────────────────────────────────────────────────
@@ -1299,6 +1320,13 @@ function VariantPicker({ product, status, onClose, onConfirm }: {
 }
 
 // ── carrito ──────────────────────────────────────────────────────────────────
+type CartStep = "items" | "delivery" | "review";
+const CART_STEPS: { id: CartStep; label: string }[] = [
+  { id: "items", label: "Pedido" },
+  { id: "delivery", label: "Entrega" },
+  { id: "review", label: "Confirmar" },
+];
+
 function RadioCards<T extends string>({ legend, name, value, options, onChange }: {
   legend: string; name: string; value: T; options: { value: T; label: string; hint?: string }[]; onChange: (v: T) => void;
 }) {
@@ -1324,6 +1352,7 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
 }) {
   const items = cart.map(resolveLine).filter((l): l is ResolvedLine => l !== null);
   const total = items.reduce((sum, l) => sum + l.variant.price * l.quantity, 0);
+  const [step, setStep] = useState<CartStep>("items");
   const [addressError, setAddressError] = useState(false);
   const [sent, setSent] = useState(false);
   const addressRef = useRef<HTMLTextAreaElement>(null);
@@ -1335,6 +1364,7 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
     if (!open) {
       setSent(false);
       setAddressError(false);
+      setStep("items");
     }
   }, [open]);
 
@@ -1344,6 +1374,7 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
     if (!items.length) return;
     if (isDelivery && order.address.trim().length < 5) {
       setAddressError(true);
+      setStep("delivery");
       addressRef.current?.focus();
       return;
     }
@@ -1351,10 +1382,31 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
     setSent(true);
   }
 
+  /** Avanza de paso; en "entrega" valida la dirección antes de dejar pasar a "confirmar". */
+  function goNext() {
+    if (step === "items") { setStep("delivery"); return; }
+    if (step === "delivery") {
+      if (isDelivery && order.address.trim().length < 5) {
+        setAddressError(true);
+        addressRef.current?.focus();
+        return;
+      }
+      setStep("review");
+      return;
+    }
+    send();
+  }
+
+  function goBack() {
+    setStep(step === "review" ? "delivery" : "items");
+  }
+
   function goToMenu() {
     onClose();
     requestAnimationFrame(() => document.getElementById("menu")?.scrollIntoView());
   }
+
+  const stepIndex = CART_STEPS.findIndex((s) => s.id === step);
 
   return (
     <Sheet open={open} onClose={onClose} labelledBy="cart-title" className="sheet--cart">
@@ -1371,84 +1423,138 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
         </div>
       ) : (
         <>
+          <div className="cart-steps" role="list" aria-label="Pasos del pedido">
+            {CART_STEPS.map((s, i) => {
+              const state = i < stepIndex ? "done" : i === stepIndex ? "current" : "upcoming";
+              return (
+                <button key={s.id} type="button" role="listitem" className={`cart-step cart-step--${state}`}
+                  disabled={state !== "done"} aria-current={state === "current" ? "step" : undefined}
+                  onClick={() => setStep(s.id)}>
+                  <span className="cart-step-dot" aria-hidden="true">{state === "done" ? <Icon name="check" size={12} strokeWidth={3} /> : i + 1}</span>
+                  <span className="cart-step-label">{s.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
           <div className="sheet-body">
-            {!status.open && (
-              <p className="notice notice--warn">Ahora estamos cerrados. {status.detail}; puedes enviar tu pedido y te respondemos al abrir.</p>
-            )}
+            <div className="cart-step-panel" key={step}>
+              {step === "items" && (
+                <>
+                  {!status.open && (
+                    <p className="notice notice--warn">Ahora estamos cerrados. {status.detail}; puedes enviar tu pedido y te respondemos al abrir.</p>
+                  )}
 
-            <fieldset className="branch-picker">
-              <legend>¿A qué sede envías el pedido?</legend>
-              <div className="radio-cards-row">
-                {BRANCH_IDS.map((id) => (
-                  <label key={id} className="radio-card radio-card--branch">
-                    <input type="radio" name="branch" value={id} checked={order.branch === id} onChange={() => update("branch", id)} />
-                    <span className="radio-card-label">{BRANCHES[id].name}</span>
-                    <span className="radio-card-hint">{fmtPhone(BRANCHES[id].whatsapp)}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <ul className="cart-list" aria-label="Productos en el carrito">
-              {items.map((l) => {
-                const label = `${l.product.name}${l.variant.label ? `, ${l.variant.label}` : ""}`;
-                return (
-                  <li key={`${l.productId}::${l.variantId}`} className="cart-line">
-                    {l.product.photo ? <img src={l.product.photo} alt="" width={48} height={64} /> : <img src={logoNeon} alt="" width={48} height={64} className="cart-thumb" />}
-                    <div className="cart-line-info">
-                      <span className="cart-line-name">{l.product.name}</span>
-                      <span className="cart-line-meta">{[l.variant.label, l.product.context].filter(Boolean).join(" · ")}</span>
-                      <span className="cart-line-price">{money(l.variant.price * l.quantity)}</span>
+                  <fieldset className="branch-picker">
+                    <legend>¿A qué sede envías el pedido?</legend>
+                    <div className="radio-cards-row">
+                      {BRANCH_IDS.map((id) => (
+                        <label key={id} className="radio-card radio-card--branch">
+                          <input type="radio" name="branch" value={id} checked={order.branch === id} onChange={() => update("branch", id)} />
+                          <span className="radio-card-label">{BRANCHES[id].name}</span>
+                          <span className="radio-card-hint">{fmtPhone(BRANCHES[id].whatsapp)}</span>
+                        </label>
+                      ))}
                     </div>
-                    <div className="stepper" role="group" aria-label={`Cantidad de ${label}`}>
-                      <button type="button" onClick={() => dispatch({ type: "setQty", productId: l.productId, variantId: l.variantId, quantity: l.quantity - 1 })}
-                        aria-label={l.quantity === 1 ? `Eliminar ${label}` : `Quitar uno de ${label}`}>
-                        <Icon name={l.quantity === 1 ? "trash" : "minus"} size={16} />
-                      </button>
-                      <output aria-live="polite">{l.quantity}</output>
-                      <button type="button" disabled={l.quantity >= MAX_QTY}
-                        onClick={() => dispatch({ type: "setQty", productId: l.productId, variantId: l.variantId, quantity: l.quantity + 1 })}
-                        aria-label={`Agregar uno de ${label}`}>
-                        <Icon name="plus" size={16} />
-                      </button>
+                  </fieldset>
+
+                  <ul className="cart-list" aria-label="Productos en el carrito">
+                    {items.map((l) => {
+                      const label = `${l.product.name}${l.variant.label ? `, ${l.variant.label}` : ""}`;
+                      return (
+                        <li key={`${l.productId}::${l.variantId}`} className="cart-line">
+                          {l.product.photo ? <img src={l.product.photo} alt="" width={48} height={64} /> : <img src={logoNeon} alt="" width={48} height={64} className="cart-thumb" />}
+                          <div className="cart-line-info">
+                            <span className="cart-line-name">{l.product.name}</span>
+                            <span className="cart-line-meta">{[l.variant.label, l.product.context].filter(Boolean).join(" · ")}</span>
+                            <span className="cart-line-price">{money(l.variant.price * l.quantity)}</span>
+                          </div>
+                          <div className="stepper" role="group" aria-label={`Cantidad de ${label}`}>
+                            <button type="button" onClick={() => dispatch({ type: "setQty", productId: l.productId, variantId: l.variantId, quantity: l.quantity - 1 })}
+                              aria-label={l.quantity === 1 ? `Eliminar ${label}` : `Quitar uno de ${label}`}>
+                              <Icon name={l.quantity === 1 ? "trash" : "minus"} size={16} />
+                            </button>
+                            <output aria-live="polite">{l.quantity}</output>
+                            <button type="button" disabled={l.quantity >= MAX_QTY}
+                              onClick={() => dispatch({ type: "setQty", productId: l.productId, variantId: l.variantId, quantity: l.quantity + 1 })}
+                              aria-label={`Agregar uno de ${label}`}>
+                              <Icon name="plus" size={16} />
+                            </button>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  <button type="button" className="text-btn" onClick={() => dispatch({ type: "clear" })}>
+                    <Icon name="trash" size={14} /> Vaciar carrito
+                  </button>
+                </>
+              )}
+
+              {step === "delivery" && (
+                <>
+                  <RadioCards legend="Entrega" name="delivery" value={order.delivery} onChange={(v) => update("delivery", v)}
+                    options={[
+                      { value: "domicilio", label: "Domicilio", hint: freeDelivery ? "¡Hoy jueves es gratis!" : "Valor según zona" },
+                      { value: "recoger", label: "Recoger en sede", hint: `Sede ${branch.name}` },
+                    ]} />
+
+                  {isDelivery && (
+                    <div className="field">
+                      <label htmlFor="order-address">Dirección de entrega <span aria-hidden="true">*</span></label>
+                      <textarea id="order-address" ref={addressRef} rows={2} value={order.address} required
+                        placeholder="Barrio, calle, número y referencia" autoComplete="street-address"
+                        aria-invalid={addressError || undefined} aria-describedby={addressError ? "order-address-error" : undefined}
+                        onChange={(e) => { update("address", e.target.value); if (addressError) setAddressError(false); }} />
+                      {addressError && <p id="order-address-error" className="field-error">Escribe la dirección para el domicilio.</p>}
                     </div>
-                  </li>
-                );
-              })}
-            </ul>
+                  )}
 
-            <RadioCards legend="Entrega" name="delivery" value={order.delivery} onChange={(v) => update("delivery", v)}
-              options={[
-                { value: "domicilio", label: "Domicilio", hint: freeDelivery ? "¡Hoy jueves es gratis!" : "Valor según zona" },
-                { value: "recoger", label: "Recoger en sede", hint: `Sede ${branch.name}` },
-              ]} />
+                  <RadioCards legend="Método de pago" name="payment" value={order.payment} onChange={(v) => update("payment", v)}
+                    options={[
+                      { value: "cash", label: "Efectivo" },
+                      { value: "transfer", label: "Transferencia", hint: "Te enviamos los datos" },
+                    ]} />
 
-            {isDelivery && (
-              <div className="field">
-                <label htmlFor="order-address">Dirección de entrega <span aria-hidden="true">*</span></label>
-                <textarea id="order-address" ref={addressRef} rows={2} value={order.address} required
-                  placeholder="Barrio, calle, número y referencia" autoComplete="street-address"
-                  aria-invalid={addressError || undefined} aria-describedby={addressError ? "order-address-error" : undefined}
-                  onChange={(e) => { update("address", e.target.value); if (addressError) setAddressError(false); }} />
-                {addressError && <p id="order-address-error" className="field-error">Escribe la dirección para el domicilio.</p>}
-              </div>
-            )}
+                  <div className="field">
+                    <label htmlFor="order-notes">Notas o indicaciones <span className="muted">(opcional)</span></label>
+                    <textarea id="order-notes" rows={2} value={order.notes} onChange={(e) => update("notes", e.target.value)}
+                      placeholder="Sabores de la promo, sin hielo, portería, etc." />
+                  </div>
+                </>
+              )}
 
-            <RadioCards legend="Método de pago" name="payment" value={order.payment} onChange={(v) => update("payment", v)}
-              options={[
-                { value: "cash", label: "Efectivo" },
-                { value: "transfer", label: "Transferencia", hint: "Te enviamos los datos" },
-              ]} />
+              {step === "review" && (
+                <>
+                  <ul className="cart-list cart-list--review" aria-label="Resumen de productos">
+                    {items.map((l) => (
+                      <li key={`${l.productId}::${l.variantId}`} className="cart-line cart-line--readonly">
+                        {l.product.photo ? <img src={l.product.photo} alt="" width={48} height={64} /> : <img src={logoNeon} alt="" width={48} height={64} className="cart-thumb" />}
+                        <div className="cart-line-info">
+                          <span className="cart-line-name">{l.product.name}</span>
+                          <span className="cart-line-meta">{[l.variant.label, l.product.context].filter(Boolean).join(" · ")}</span>
+                          <span className="cart-line-price">{money(l.variant.price * l.quantity)}</span>
+                        </div>
+                        <span className="cart-line-qty" aria-hidden="true">×{l.quantity}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-            <div className="field">
-              <label htmlFor="order-notes">Notas o indicaciones <span className="muted">(opcional)</span></label>
-              <textarea id="order-notes" rows={2} value={order.notes} onChange={(e) => update("notes", e.target.value)}
-                placeholder="Sabores de la promo, sin hielo, portería, etc." />
+                  <dl className="review-summary">
+                    <div><dt>Sede</dt><dd>{branch.name}</dd></div>
+                    <div><dt>Entrega</dt><dd>{isDelivery ? "Domicilio" : `Recoger en sede ${branch.name}`}</dd></div>
+                    {isDelivery && <div><dt>Dirección</dt><dd>{order.address}</dd></div>}
+                    <div><dt>Pago</dt><dd>{PAYMENT_LABEL[order.payment]}</dd></div>
+                    {order.notes.trim() && <div><dt>Notas</dt><dd>{order.notes}</dd></div>}
+                  </dl>
+
+                  {!status.open && (
+                    <p className="notice notice--warn">Ahora estamos cerrados. {status.detail}; puedes enviar tu pedido y te respondemos al abrir.</p>
+                  )}
+                </>
+              )}
             </div>
-
-            <button type="button" className="text-btn" onClick={() => dispatch({ type: "clear" })}>
-              <Icon name="trash" size={14} /> Vaciar carrito
-            </button>
           </div>
 
           <div className="sheet-foot">
@@ -1466,9 +1572,20 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
                 </div>
               </div>
             ) : (
-              <button type="button" className="btn-wa btn-wa--solid" onClick={send}>
-                <MaskIcon src={iconWA} size={20} /> Enviar pedido a {branch.name} por WhatsApp
-              </button>
+              <div className="sheet-foot-actions">
+                {step !== "items" && (
+                  <button type="button" className="btn-outline" onClick={goBack}>Atrás</button>
+                )}
+                {step === "review" ? (
+                  <button type="button" className="btn-wa btn-wa--solid" onClick={goNext}>
+                    <MaskIcon src={iconWA} size={20} /> Enviar pedido a {branch.name} por WhatsApp
+                  </button>
+                ) : (
+                  <button type="button" className="btn-primary" onClick={goNext}>
+                    {step === "items" ? "Continuar" : "Revisar pedido"}
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </>
