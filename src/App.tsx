@@ -106,17 +106,7 @@ function useTheme() {
 // 2. DATA
 // ═════════════════════════════════════════════════════════════════════════════
 
-// ── horario (igual en ambas sedes) ───────────────────────────────────────────
-const OPEN_HOUR = 16; // 4 PM
-// Cierre por día (0 = domingo). Valores > 24 = madrugada del día siguiente.
-const CLOSE_HOUR: Record<number, number> = { 0: 24, 1: 24, 2: 24, 3: 24, 4: 24, 5: 25, 6: 26 };
-const SCHEDULE_ROWS: [string, string][] = [
-  ["Lun – Jue", "4:00 PM – 12:00 AM"],
-  ["Viernes", "4:00 PM – 1:00 AM"],
-  ["Sábado", "4:00 PM – 2:00 AM"],
-  ["Domingo", "4:00 PM – 12:00 AM"],
-];
-
+// ── horario ──────────────────────────────────────────────────────────────────
 // ── sedes ────────────────────────────────────────────────────────────────────
 type BranchId = "tulua" | "buga";
 type Branch = {
@@ -150,6 +140,30 @@ const BRANCHES: Record<BranchId, Branch> = {
   },
 };
 const BRANCH_IDS: BranchId[] = ["tulua", "buga"];
+const OPEN_HOUR: Record<BranchId, Record<number, number>> = {
+  tulua: { 0: 16, 1: 16, 2: 16, 3: 16, 4: 16, 5: 16, 6: 16 },
+  buga: { 0: 15, 1: 16, 2: 16, 3: 16, 4: 16, 5: 16, 6: 16 },
+};
+
+// Cierre por día (0 = domingo). Valores > 24 = madrugada del día siguiente.
+const CLOSE_HOUR: Record<BranchId, Record<number, number>> = {
+  tulua: { 0: 24, 1: 24, 2: 24, 3: 24, 4: 24, 5: 25, 6: 26 },
+  buga: { 0: 25, 1: 24, 2: 24, 3: 24, 4: 24, 5: 27, 6: 27 },
+};
+const SCHEDULE_ROWS: Record<BranchId, [string, string][]> = {
+  tulua: [
+    ["Lun – Jue", "4:00 PM – 12:00 AM"],
+    ["Viernes", "4:00 PM – 1:00 AM"],
+    ["Sábado", "4:00 PM – 2:00 AM"],
+    ["Domingo", "4:00 PM – 12:00 AM"],
+  ],
+  buga: [
+    ["Lun – Jue", "4:00 PM – 12:00 AM"],
+    ["Viernes", "4:00 PM – 3:00 AM"],
+    ["Sábado", "4:00 PM – 3:00 AM"],
+    ["Domingo", "3:00 PM – 1:00 AM"],
+  ],
+};
 
 // ── productos ────────────────────────────────────────────────────────────────
 type Variant = { id: string; label: string; price: number };
@@ -159,7 +173,7 @@ type Product = {
   desc: string;
   photo?: string;
   badge?: string;
-  /** Categoría legible (se usa en el carrito y en el mensaje de WhatsApp). */
+  /** Categoría legible (se usa en el pedido y en el mensaje de WhatsApp). */
   context?: string;
   /** "cocktail" = coctelería/bebidas (solo recoger). Sin definir = granizado (admite domicilio). */
   kind?: "granizado" | "cocktail";
@@ -364,7 +378,7 @@ const cocktailProducts: Product[] = cocktailCategories.flatMap((cat) =>
     })),
 );
 
-/** Catálogo único: el carrito guarda sólo {productId, variantId, quantity} y resuelve aquí. */
+/** Catálogo único: el pedido guarda sólo {productId, variantId, quantity} y resuelve aquí. */
 const CATALOG = new Map<string, Product>(
   [
     ...recommended,
@@ -415,30 +429,32 @@ function fmtHour(h: number) {
 
 type OpenStatus = { open: boolean; detail: string; /** día "comercial" (la madrugada cuenta como el día anterior) */ sessionDay: number };
 
-function getOpenStatus(now = new Date()): OpenStatus {
+function getOpenStatus(now = new Date(), branchId: BranchId = "tulua"): OpenStatus {
   const day = now.getDay();
   const hour = now.getHours() + now.getMinutes() / 60;
+  const openHour = OPEN_HOUR[branchId][day];
+  const closeHour = CLOSE_HOUR[branchId];
 
   // Dentro de la franja de hoy (4 PM – medianoche).
-  if (hour >= OPEN_HOUR) return { open: true, detail: `Cierra a las ${fmtHour(CLOSE_HOUR[day])}`, sessionDay: day };
+  if (hour >= openHour) return { open: true, detail: `Cierra a las ${fmtHour(closeHour[day])}`, sessionDay: day };
 
-  // Madrugada: todavía dentro de la extensión nocturna de ayer (Vie → 1 AM, Sáb → 2 AM).
+  // Madrugada: todavía dentro de la extensión nocturna del día comercial anterior.
   const prev = (day + 6) % 7;
-  const prevClose = CLOSE_HOUR[prev];
+  const prevClose = closeHour[prev];
   if (prevClose > 24 && hour < prevClose - 24) {
     return { open: true, detail: `Cierra a las ${fmtHour(prevClose)}`, sessionDay: prev };
   }
 
-  return { open: false, detail: `Abrimos hoy a las ${fmtHour(OPEN_HOUR)}`, sessionDay: day };
+  return { open: false, detail: `Abrimos hoy a las ${fmtHour(openHour)}`, sessionDay: day };
 }
 
 /** Re-evalúa el estado abierto/cerrado cada minuto. */
-function useOpenStatus() {
-  const [status, setStatus] = useState(() => getOpenStatus());
+function useOpenStatus(branchId: BranchId = "tulua") {
+  const [status, setStatus] = useState(() => getOpenStatus(new Date(), branchId));
   useEffect(() => {
-    const id = window.setInterval(() => setStatus(getOpenStatus()), 60_000);
+    const id = window.setInterval(() => setStatus(getOpenStatus(new Date(), branchId)), 60_000);
     return () => window.clearInterval(id);
-  }, []);
+  }, [branchId]);
   return status;
 }
 
@@ -474,7 +490,7 @@ function useInView<T extends Element>(rootMargin = "200px") {
   return [ref, inView] as const;
 }
 
-// ── carrito ──────────────────────────────────────────────────────────────────
+// ── pedido ───────────────────────────────────────────────────────────────────
 type CartLine = { productId: string; variantId: string; quantity: number };
 type CartAction =
   | { type: "add"; productId: string; variantId: string; quantity?: number }
@@ -750,7 +766,7 @@ function Header({ dark, onToggleTheme, status, active, cartCount, onOpenCart }: 
       <div className="header-actions">
         <StatusPill status={status} />
         <button type="button" className="icon-btn cart-btn" onClick={onOpenCart}
-          aria-label={cartCount ? `Abrir carrito, ${cartCount} ${cartCount === 1 ? "producto" : "productos"}` : "Abrir carrito, vacío"}>
+          aria-label={cartCount ? `Abrir pedido, ${cartCount} ${cartCount === 1 ? "producto" : "productos"}` : "Abrir pedido, vacío"}>
           <Icon name="bag" />
           {cartCount > 0 && <span key={cartCount} className="cart-badge" aria-hidden="true">{cartCount}</span>}
         </button>
@@ -841,7 +857,7 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
             {product.context === "Recomendado" && <span className="badge-recomendado">RECOMENDADO</span>}
           </div>
           <button type="button" className="add-btn stretched" onClick={handle}
-            aria-label={`${multi ? "Elegir opción de" : "Agregar"} ${product.name} al carrito, ${priceLabel(product)}`}>
+            aria-label={`${multi ? "Elegir opción de" : "Agregar"} ${product.name} al pedido, ${priceLabel(product)}`}>
             <Icon name={added ? "check" : "plus"} size={16} strokeWidth={2.5} />
             <span>{added ? "Listo" : "Agregar"}</span>
           </button>
@@ -897,7 +913,7 @@ function MenuRow({ product, onAdd }: { product: Product; onAdd: AddHandler }) {
       </div>
       <span className="menu-row-price">{priceLabel(product)}</span>
       <button type="button" className="row-add-btn" onClick={() => onAdd(product)}
-        aria-label={`Agregar ${product.name} (${product.context ?? ""}) al carrito, ${priceLabel(product)}`}>
+        aria-label={`Agregar ${product.name} (${product.context ?? ""}) al pedido, ${priceLabel(product)}`}>
         <Icon name="plus" size={16} strokeWidth={2.5} />
       </button>
     </li>
@@ -1026,7 +1042,7 @@ function BranchMap({ branch }: { branch: Branch }) {
   );
 }
 
-function SectionSucursales({ status, onOrderHere }: { status: OpenStatus; onOrderHere: (id: BranchId) => void }) {
+function SectionSucursales({ statuses, onOrderHere }: { statuses: Record<BranchId, OpenStatus>; onOrderHere: (id: BranchId) => void }) {
   return (
     <section id="sucursales" className="section" aria-labelledby="sucursales-title">
       <div className="section-inner">
@@ -1045,7 +1061,7 @@ function SectionSucursales({ status, onOrderHere }: { status: OpenStatus; onOrde
                       <h3 id={`branch-${id}`} className="branch-name">{b.name.toUpperCase()}</h3>
                       <p className="branch-tag">{b.tag}</p>
                     </div>
-                    <StatusPill status={status} />
+                    <StatusPill status={statuses[id]} />
                   </header>
 
                   <BranchMap branch={b} />
@@ -1068,7 +1084,7 @@ function SectionSucursales({ status, onOrderHere }: { status: OpenStatus; onOrde
                   <div className="schedule">
                     <h4 className="label">Horario</h4>
                     <dl>
-                      {SCHEDULE_ROWS.map(([d, h]) => (
+                      {SCHEDULE_ROWS[id].map(([d, h]) => (
                         <div key={d}><dt>{d}</dt><dd>{h}</dd></div>
                       ))}
                     </dl>
@@ -1088,7 +1104,7 @@ function SectionSucursales({ status, onOrderHere }: { status: OpenStatus; onOrde
 }
 
 // ── redes ────────────────────────────────────────────────────────────────────
-function SectionRedes({ branch }: { branch: Branch }) {
+function SectionRedes({ onOpenWhatsApp }: { onOpenWhatsApp: () => void }) {
   return (
     <section id="redes" className="section section--redes" aria-labelledby="redes-title">
       <div className="section-inner">
@@ -1119,12 +1135,12 @@ function SectionRedes({ branch }: { branch: Branch }) {
           ))}
           <li>
             <Reveal delay={180}>
-              <a className="social-card" href={waChatUrl(branch)} target="_blank" rel="noopener noreferrer" style={{ "--social-color": "#25D366" } as CSSProperties}>
+              <a className="social-card" href="#whatsapp" onClick={(e) => { e.preventDefault(); onOpenWhatsApp(); }} style={{ "--social-color": "#25D366" } as CSSProperties}>
                 <span className="social-icon"><MaskIcon src={iconWA} color="#25D366" size={44} /></span>
                 <span className="social-name">WhatsApp</span>
-                <span className="social-handle">Sede {branch.name}</span>
-                <span className="social-followers">{fmtPhone(branch.whatsapp)}</span>
-                <span className="social-cta">Escríbenos<span className="sr-only"> (abre en una pestaña nueva)</span></span>
+                <span className="social-handle">Sede Tuluá<br />{fmtPhone(BRANCHES.tulua.whatsapp)}</span>
+                <span className="social-handle">Sede Buga<br />{fmtPhone(BRANCHES.buga.whatsapp)}</span>
+                <span className="social-cta">Escríbenos</span>
               </a>
             </Reveal>
           </li>
@@ -1189,7 +1205,7 @@ function VariantPicker({ product, status, onClose, onConfirm }: {
             </div>
           </div>
           <div className="sheet-foot">
-            <button type="submit" className="btn-primary">Agregar al carrito · {money(variant.price * qty)}</button>
+            <button type="submit" className="btn-primary">Agregar al pedido · {money(variant.price * qty)}</button>
           </div>
         </form>
       )}
@@ -1197,7 +1213,7 @@ function VariantPicker({ product, status, onClose, onConfirm }: {
   );
 }
 
-// ── carrito ──────────────────────────────────────────────────────────────────
+// ── pedido ───────────────────────────────────────────────────────────────────
 type CartStep = "items" | "delivery" | "review";
 const CART_STEPS: { id: CartStep; label: string }[] = [
   { id: "items", label: "Pedido" },
@@ -1237,7 +1253,7 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
   const freeDelivery = status.sessionDay === 4;
   const isDelivery = order.delivery === "domicilio";
   const branch = BRANCHES[order.branch];
-  /** Domicilio solo aplica si el carrito trae únicamente granizados (coctelería/bebidas → solo recoger). */
+  /** Domicilio solo aplica si el pedido trae únicamente granizados (coctelería/bebidas → solo recoger). */
   const canDeliver = items.length > 0 && items.every((l) => l.product.kind !== "cocktail");
 
   useEffect(() => {
@@ -1371,7 +1387,7 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
                   </ul>
 
                   <button type="button" className="text-btn" onClick={() => dispatch({ type: "clear" })}>
-                    <Icon name="trash" size={14} /> Vaciar carrito
+                    <Icon name="trash" size={14} /> Vaciar pedido
                   </button>
                 </>
               )}
@@ -1457,7 +1473,7 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
                 <p>¡Listo! Termina de enviar el mensaje en WhatsApp.</p>
                 <div className="sent-actions">
                   <button type="button" className="btn-outline" onClick={send}>Abrir de nuevo</button>
-                  <button type="button" className="btn-outline" onClick={() => { dispatch({ type: "clear" }); onClose(); }}>Vaciar carrito</button>
+                  <button type="button" className="btn-outline" onClick={() => { dispatch({ type: "clear" }); onClose(); }}>Vaciar pedido</button>
                 </div>
               </div>
             ) : (
@@ -1484,21 +1500,20 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
 }
 
 // ── WhatsApp flotante (chat directo por sede) ────────────────────────────────
-function WhatsAppFloat() {
-  const [open, setOpen] = useState(false);
+function WhatsAppFloat({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    const onDown = (e: PointerEvent) => { if (!wrapRef.current?.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onToggle(); };
+    const onDown = (e: PointerEvent) => { if (!wrapRef.current?.contains(e.target as Node)) onToggle(); };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onDown);
     return () => {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onDown);
     };
-  }, [open]);
+  }, [open, onToggle]);
 
   return (
     <div ref={wrapRef} className="wa-float-wrap">
@@ -1506,14 +1521,14 @@ function WhatsAppFloat() {
         <div id="wa-menu" className="wa-menu">
           <p className="wa-menu-title">Chatea con una sede</p>
           {BRANCH_IDS.map((id) => (
-            <a key={id} href={waChatUrl(BRANCHES[id])} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
+            <a key={id} href={waChatUrl(BRANCHES[id])} target="_blank" rel="noopener noreferrer" onClick={onToggle}>
               <MaskIcon src={iconWA} color="var(--wa-text)" size={18} />
               <span>WhatsApp {BRANCHES[id].name}<small>{fmtPhone(BRANCHES[id].whatsapp)}</small></span>
             </a>
           ))}
         </div>
       )}
-      <button type="button" className="wa-float" onClick={() => setOpen((o) => !o)}
+      <button type="button" className="wa-float" onClick={onToggle}
         aria-expanded={open} aria-controls="wa-menu" aria-label="Chatear por WhatsApp">
         <MaskIcon src={iconWA} color="#fff" size={28} />
       </button>
@@ -1527,7 +1542,8 @@ function WhatsAppFloat() {
 
 export default function App() {
   const { dark, toggle } = useTheme();
-  const status = useOpenStatus();
+  const status = useOpenStatus("tulua");
+  const bugaStatus = useOpenStatus("buga");
   const [active, setActive] = useState("inicio");
 
   const [cart, dispatch] = useReducer(cartReducer, undefined, () => sanitizeCart(load<unknown>(CART_KEY, [])));
@@ -1535,6 +1551,7 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [picker, setPicker] = useState<Product | null>(null);
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
+  const [whatsappOpen, setWhatsappOpen] = useState(false);
 
   useEffect(() => save(CART_KEY, cart), [cart]);
   useEffect(() => {
@@ -1592,8 +1609,8 @@ export default function App() {
       <main id="contenido">
         <SectionInicio status={status} onAdd={handleAdd} />
         <SectionMenu onAdd={handleAdd} />
-        <SectionSucursales status={status} onOrderHere={orderHere} />
-        <SectionRedes branch={BRANCHES[order.branch]} />
+        <SectionSucursales statuses={{ tulua: status, buga: bugaStatus }} onOrderHere={orderHere} />
+        <SectionRedes onOpenWhatsApp={() => setWhatsappOpen(true)} />
       </main>
 
       <footer className="app-footer">
@@ -1619,7 +1636,7 @@ export default function App() {
         ))}
       </nav>
 
-      <WhatsAppFloat />
+      <WhatsAppFloat open={whatsappOpen} onToggle={() => setWhatsappOpen((o) => !o)} />
 
       <div className="toast-region" role="status" aria-live="polite">
         {toast && (
@@ -1635,7 +1652,7 @@ export default function App() {
         onConfirm={(p, v, q) => { addToCart(p, v, q); setPicker(null); }} />
 
       <CartSheet open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} dispatch={dispatch}
-        order={order} setOrder={setOrder} status={status} />
+        order={order} setOrder={setOrder} status={order.branch === "buga" ? bugaStatus : status} />
     </div>
   );
 }
