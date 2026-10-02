@@ -37,6 +37,7 @@ import imgCombi from "@/imports/web/combi-completa.webp";
 import imgNocheArdiente from "@/imports/web/noche-ardiente.webp";
 import imgMoraAzul from "@/imports/web/mora-azul.webp";
 import imgFrutosRojos from "@/imports/web/frutos-rojos.webp";
+import imgFrutosIntensos from "@/imports/web/frutos-intensos.webp";
 import imgMaracumango from "@/imports/web/maracumango.webp";
 import imgSmirnoff from "@/imports/web/smirnoff.webp";
 import imgPanteraRosa from "@/imports/web/pantera-rosa.webp";
@@ -172,6 +173,8 @@ type Product = {
   name: string;
   desc: string;
   photo?: string;
+  /** Foto 2:3 (vaso completo); sin definir = 3:4. */
+  tall?: boolean;
   badge?: string;
   /** Categoría legible (se usa en el pedido y en el mensaje de WhatsApp). */
   context?: string;
@@ -194,14 +197,14 @@ const GRANIZADO_VARIANTS: Variant[] = [
 
 const recommended: Product[] = [
   { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, badge: "Granizado Fest 2026", context: "Recomendado", kind: "granizado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
-  { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, context: "Recomendado", kind: "granizado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
+  { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, tall: true, context: "Recomendado", kind: "granizado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
   { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, context: "Recomendado", kind: "granizado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
   { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
   { id: "rec-fresada", name: "FRESADA", photo: imgFresada, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
 ];
 
 const granizado = (id: string, name: string, desc: string, photo: string, context: string): Product => ({
-  id, name, desc, photo, context, kind: "granizado", variants: GRANIZADO_VARIANTS,
+  id, name, desc, photo, tall: true, context, kind: "granizado", variants: GRANIZADO_VARIANTS,
 });
 
 const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
@@ -225,7 +228,7 @@ const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
     id: "sinLicor",
     label: "Sin licor",
     items: [
-      granizado("gs-frutos-intensos", "FRUTOS INTENSOS", "Fresa, Bombombun", imgFrutosRojos, "Granizado sin licor"),
+      granizado("gs-frutos-intensos", "FRUTOS INTENSOS", "Fresa, Bombombun", imgFrutosIntensos, "Granizado sin licor"),
       granizado("gs-chicle", "CHICLE", "Sirope de chicle", imgChicle, "Granizado sin licor"),
     ],
   },
@@ -843,8 +846,8 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
   return (
     <article className={`product-card${product.photo ? "" : " product-card--text"}${compact ? " product-card--compact" : ""}${added ? " is-added" : ""}`}>
       {product.photo && (
-        <div className="product-media">
-          <img src={product.photo} alt="" width={300} height={400} loading="lazy" decoding="async" />
+        <div className={`product-media${product.tall ? " product-media--tall" : ""}`}>
+          <img src={product.photo} alt="" width={300} height={product.tall ? 450 : 400} loading="lazy" decoding="async" />
         </div>
       )}
       <div className="product-body">
