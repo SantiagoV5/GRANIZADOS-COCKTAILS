@@ -36,3 +36,7 @@ Desktop.ini
 
 # TypeScript build metadata
 *.tsbuildinfo
+# Python (entorno local para los scripts de imágenes)
+.venv/
+__pycache__/
+*.pyc

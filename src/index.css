@@ -492,22 +492,14 @@ button svg, a svg { flex-shrink: 0; }
 .neon-text--blue { color: var(--text-primary); animation: none; text-shadow: var(--text-neon-blue); }
 .light-mode .neon-text { animation: none; color: var(--accent); }
 .light-mode .neon-text--blue { color: var(--blue-text); }
-.hero-since {
-  margin: 8px 0 0;
-  color: var(--blue-text);
-  font: 700 12px var(--font-sub);
-  letter-spacing: 3px;
-  text-shadow: var(--text-neon-blue);
-}
 .hero-tagline {
-  margin: 10px auto 0;
+  margin: 18px auto 0;
   max-width: 32ch;
   color: var(--text-secondary);
   font: 600 15px/1.5 var(--font-body);
   text-transform: uppercase;
   letter-spacing: .5px;
 }
-.hero-status { margin: 16px 0 0; }
 .hero-ctas { margin-top: 22px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 @media (min-width: 900px) {
   .hero { padding: 80px 40px 72px; }
@@ -724,6 +716,13 @@ button svg, a svg { flex-shrink: 0; }
 
 .product-media { position: relative; aspect-ratio: 3 / 4; overflow: hidden; background: var(--bg-sunken); }
 .product-media--tall { aspect-ratio: 2 / 3; }
+.product-media--glow {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(255, 0, 255, .68) 0%, rgba(115, 0, 120, .42) 18%, transparent 44%),
+    radial-gradient(circle at 0% 100%, rgba(0, 82, 255, .42) 0%, rgba(53, 45, 66, .5) 25%, transparent 54%),
+    radial-gradient(circle at 53% 56%, rgba(125, 28, 52, .42) 0%, rgba(21, 8, 25, .82) 48%, transparent 76%),
+    linear-gradient(145deg, #150C1A 0%, #251437 40%, #120A1B 68%, #301B1E 100%);
+}
 .product-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s var(--ease-out); }
 .product-card:hover .product-media img { transform: scale(1.06); }
 .product-badge {

@@ -175,6 +175,7 @@ type Product = {
   photo?: string;
   /** Foto 2:3 (vaso completo); sin definir = 3:4. */
   tall?: boolean;
+  glow?: boolean;
   badge?: string;
   /** Categoría legible (se usa en el pedido y en el mensaje de WhatsApp). */
   context?: string;
@@ -196,11 +197,11 @@ const GRANIZADO_VARIANTS: Variant[] = [
 ];
 
 const recommended: Product[] = [
-  { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, badge: "Granizado Fest 2026", context: "Recomendado", kind: "granizado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
+  { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, tall: true, glow: true, badge: "Granizado Fest 2026", context: "Recomendado", kind: "granizado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
   { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, tall: true, context: "Recomendado", kind: "granizado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
-  { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, context: "Recomendado", kind: "granizado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
-  { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
-  { id: "rec-fresada", name: "FRESADA", photo: imgFresada, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
+  { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, tall: true, glow: true, context: "Recomendado", kind: "granizado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
+  { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
+  { id: "rec-fresada", name: "FRESADA", photo: imgFresada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
 ];
 
 const granizado = (id: string, name: string, desc: string, photo: string, context: string): Product => ({
@@ -784,7 +785,7 @@ function Header({ dark, onToggleTheme, status, active, cartCount, onOpenCart }: 
 }
 
 // ── inicio ───────────────────────────────────────────────────────────────────
-function Hero({ status }: { status: OpenStatus }) {
+function Hero() {
   return (
     <div className="hero">
       <div className="hero-grid" aria-hidden="true" />
@@ -796,11 +797,7 @@ function Hero({ status }: { status: OpenStatus }) {
         <span className="hero-title-sep">-</span>
         <span className="neon-text neon-text--blue">COCKTAILS</span>
       </h1>
-      <p className="hero-since">SINCE 2025</p>
       <p className="hero-tagline">Los mejores granizados de Tuluá y Buga</p>
-      <p className="hero-status">
-        <StatusPill status={status} showDetail />
-      </p>
       <div className="hero-ctas">
         <a className="btn-neon" href="#menu">Ver menú</a>
         <a className="btn-ghost" href="#sucursales">Sucursales</a>
@@ -846,7 +843,7 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
   return (
     <article className={`product-card${product.photo ? "" : " product-card--text"}${compact ? " product-card--compact" : ""}${added ? " is-added" : ""}`}>
       {product.photo && (
-        <div className={`product-media${product.tall ? " product-media--tall" : ""}`}>
+        <div className={`product-media${product.tall ? " product-media--tall" : ""}${product.glow ? " product-media--glow" : ""}`}>
           <img src={product.photo} alt="" width={300} height={product.tall ? 450 : 400} loading="lazy" decoding="async" />
         </div>
       )}
@@ -870,10 +867,10 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
   );
 }
 
-function SectionInicio({ status, onAdd }: { status: OpenStatus; onAdd: AddHandler }) {
+function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
   return (
     <section id="inicio" className="section section--inicio" aria-label="Inicio">
-      <Hero status={status} />
+      <Hero />
 
       <div className="section-inner">
         <Reveal>
@@ -1610,7 +1607,7 @@ export default function App() {
       <Header dark={dark} onToggleTheme={toggle} status={status} active={active} cartCount={cartCount} onOpenCart={() => setCartOpen(true)} />
 
       <main id="contenido">
-        <SectionInicio status={status} onAdd={handleAdd} />
+        <SectionInicio onAdd={handleAdd} />
         <SectionMenu onAdd={handleAdd} />
         <SectionSucursales statuses={{ tulua: status, buga: bugaStatus }} onOrderHere={orderHere} />
         <SectionRedes onOpenWhatsApp={() => setWhatsappOpen(true)} />
