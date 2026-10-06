@@ -47,6 +47,18 @@ import imgMargarita from "@/imports/web/margarita-tequila.webp";
 import imgCremosoBaileys from "@/imports/web/cremoso-baileys.webp";
 import imgChicle from "@/imports/web/chicle.webp";
 import imgMangomanzana from "@/imports/web/mangomanzana.webp";
+import imgCremososOreoChocorramo from "@/imports/web/cremosos-oreo-chocorramo.webp";
+import imgCremososCafeMilo from "@/imports/web/cremosos-cafe-milo.webp";
+import imgFrutosRojosSolo from "@/imports/web/frutos-rojos-solo.webp";
+import imgJagermeisterSolo from "@/imports/web/jagermeister-solo.webp";
+import imgMangomanzanaSolo from "@/imports/web/mangomanzana-solo.webp";
+import imgMaracumangoSolo from "@/imports/web/maracumango-solo.webp";
+import imgMargaritaSolo from "@/imports/web/margarita-tequila-solo.webp";
+import imgMiamiNightSolo from "@/imports/web/miami-night-solo.webp";
+import imgMoraAzulSolo from "@/imports/web/mora-azul-solo.webp";
+import imgNocheArdienteSolo from "@/imports/web/noche-ardiente-solo.webp";
+import imgPanteraRosaSolo from "@/imports/web/pantera-rosa-solo.webp";
+import imgSmirnoffSolo from "@/imports/web/smirnoff-solo.webp";
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 1. STORAGE + THEME
@@ -123,7 +135,7 @@ type Branch = {
 const BRANCHES: Record<BranchId, Branch> = {
   tulua: {
     id: "tulua",
-    name: "Tulúa",
+    name: "Tuluá",
     tag: "Sede principal",
     address: "Cra 27A #41-07 Av. Cali",
     city: "Tuluá, Valle del Cauca",
@@ -141,33 +153,31 @@ const BRANCHES: Record<BranchId, Branch> = {
   },
 };
 const BRANCH_IDS: BranchId[] = ["tulua", "buga"];
-const OPEN_HOUR: Record<BranchId, Record<number, number>> = {
-  tulua: { 0: 16, 1: 16, 2: 16, 3: 16, 4: 16, 5: 16, 6: 16 },
-  buga: { 0: 15, 1: 16, 2: 16, 3: 16, 4: 16, 5: 16, 6: 16 },
+type ScheduleEntry = { open: number; close: number; label: string; hours: string };
+const BRANCH_SCHEDULE: Record<BranchId, Record<number, ScheduleEntry>> = {
+  tulua: {
+    0: { open: 16, close: 24, label: "Domingo", hours: "4:00 PM – 12:00 AM" },
+    1: { open: 16, close: 24, label: "Lun – Jue", hours: "4:00 PM – 12:00 AM" },
+    2: { open: 16, close: 24, label: "Lun – Jue", hours: "4:00 PM – 12:00 AM" },
+    3: { open: 16, close: 24, label: "Lun – Jue", hours: "4:00 PM – 12:00 AM" },
+    4: { open: 16, close: 24, label: "Lun – Jue", hours: "4:00 PM – 12:00 AM" },
+    5: { open: 16, close: 25, label: "Viernes", hours: "4:00 PM – 1:00 AM" },
+    6: { open: 16, close: 26, label: "Sábado", hours: "4:00 PM – 2:00 AM" },
+  },
+  buga: {
+    0: { open: 15, close: 25, label: "Domingo", hours: "3:00 PM – 1:00 AM" },
+    1: { open: 16, close: 24, label: "Lun – Jue", hours: "4:00 PM – 12:00 AM" },
+    2: { open: 16, close: 24, label: "Lun – Jue", hours: "4:00 PM – 12:00 AM" },
+    3: { open: 16, close: 24, label: "Lun – Jue", hours: "4:00 PM – 12:00 AM" },
+    4: { open: 16, close: 24, label: "Lun – Jue", hours: "4:00 PM – 12:00 AM" },
+    5: { open: 16, close: 27, label: "Viernes", hours: "4:00 PM – 3:00 AM" },
+    6: { open: 16, close: 27, label: "Sábado", hours: "4:00 PM – 3:00 AM" },
+  },
 };
-
-// Cierre por día (0 = domingo). Valores > 24 = madrugada del día siguiente.
-const CLOSE_HOUR: Record<BranchId, Record<number, number>> = {
-  tulua: { 0: 24, 1: 24, 2: 24, 3: 24, 4: 24, 5: 25, 6: 26 },
-  buga: { 0: 25, 1: 24, 2: 24, 3: 24, 4: 24, 5: 27, 6: 27 },
-};
-const SCHEDULE_ROWS: Record<BranchId, [string, string][]> = {
-  tulua: [
-    ["Lun – Jue", "4:00 PM – 12:00 AM"],
-    ["Viernes", "4:00 PM – 1:00 AM"],
-    ["Sábado", "4:00 PM – 2:00 AM"],
-    ["Domingo", "4:00 PM – 12:00 AM"],
-  ],
-  buga: [
-    ["Lun – Jue", "4:00 PM – 12:00 AM"],
-    ["Viernes", "4:00 PM – 3:00 AM"],
-    ["Sábado", "4:00 PM – 3:00 AM"],
-    ["Domingo", "3:00 PM – 1:00 AM"],
-  ],
-};
+const SCHEDULE_DAY_ORDER = [1, 5, 6, 0];
 
 // ── productos ────────────────────────────────────────────────────────────────
-type Variant = { id: string; label: string; price: number };
+type Variant = { id: string; label: string; price: number; photo?: string };
 type Product = {
   id: string;
   name: string;
@@ -204,8 +214,17 @@ const recommended: Product[] = [
   { id: "rec-fresada", name: "FRESADA", photo: imgFresada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
 ];
 
-const granizado = (id: string, name: string, desc: string, photo: string, context: string): Product => ({
-  id, name, desc, photo, tall: true, context, kind: "granizado", variants: GRANIZADO_VARIANTS,
+const granizado = (id: string, name: string, desc: string, photo: string, context: string, soloPhoto?: string): Product => ({
+  id,
+  name,
+  desc,
+  photo,
+  tall: true,
+  context,
+  kind: "granizado",
+  variants: soloPhoto
+    ? GRANIZADO_VARIANTS.map((v) => (v.id === "gomas" ? { ...v, photo: soloPhoto } : v))
+    : GRANIZADO_VARIANTS,
 });
 
 const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
@@ -213,16 +232,16 @@ const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
     id: "licor",
     label: "Con licor",
     items: [
-      granizado("gl-noche-ardiente", "NOCHE ARDIENTE", "Jägermeister, Bombombun, Tequila, Four Loko", imgNocheArdiente, "Granizado con licor"),
-      granizado("gl-mora-azul", "MORA AZUL", "Blueberry, Vodka", imgMoraAzul, "Granizado con licor"),
-      granizado("gl-frutos-rojos", "FRUTOS ROJOS", "Bombombun, Fresa, Whisky", imgFrutosRojos, "Granizado con licor"),
-      granizado("gl-maracumango", "MARACUMANGO", "Mango, Maracuyá, Tequila", imgMaracumango, "Granizado con licor"),
-      granizado("gl-smirnoff", "SMIRNOFF", "Lulo, Smirnoff, Vodka", imgSmirnoff, "Granizado con licor"),
-      granizado("gl-pantera-rosa", "PANTERA ROSA", "Champagne, Nüvo, Vodka", imgPanteraRosa, "Granizado con licor"),
-      granizado("gl-jagermeister", "JÄGERMEISTER", "Naranja, Jägermeister, Whisky", imgJagermeister, "Granizado con licor"),
-      granizado("gl-miami-night", "MIAMI NIGHT", "Uva, Triple sec, Tequila", imgMiamiNight, "Granizado con licor"),
-      granizado("gl-margarita", "MARGARITA TEQUILA", "Cereza, Maracuyá, Tequila", imgMargarita, "Granizado con licor"),
-      granizado("gl-mangomanzana", "MANGOMANZANA", "Mango biche manzana, Tequila, Four Loko", imgMangomanzana, "Granizado con licor"),
+      granizado("gl-noche-ardiente", "NOCHE ARDIENTE", "Jägermeister, Bombombun, Tequila, Four Loko", imgNocheArdiente, "Granizado con licor", imgNocheArdienteSolo),
+      granizado("gl-mora-azul", "MORA AZUL", "Blueberry, Vodka", imgMoraAzul, "Granizado con licor", imgMoraAzulSolo),
+      granizado("gl-frutos-rojos", "FRUTOS ROJOS", "Bombombun, Fresa, Whisky", imgFrutosRojos, "Granizado con licor", imgFrutosRojosSolo),
+      granizado("gl-maracumango", "MARACUMANGO", "Mango, Maracuyá, Tequila", imgMaracumango, "Granizado con licor", imgMaracumangoSolo),
+      granizado("gl-smirnoff", "SMIRNOFF", "Lulo, Smirnoff, Vodka", imgSmirnoff, "Granizado con licor", imgSmirnoffSolo),
+      granizado("gl-pantera-rosa", "PANTERA ROSA", "Champagne, Nüvo, Vodka", imgPanteraRosa, "Granizado con licor", imgPanteraRosaSolo),
+      granizado("gl-jagermeister", "JÄGERMEISTER", "Naranja, Jägermeister, Whisky", imgJagermeister, "Granizado con licor", imgJagermeisterSolo),
+      granizado("gl-miami-night", "MIAMI NIGHT", "Uva, Triple sec, Tequila", imgMiamiNight, "Granizado con licor", imgMiamiNightSolo),
+      granizado("gl-margarita", "MARGARITA TEQUILA", "Cereza, Maracuyá, Tequila", imgMargarita, "Granizado con licor", imgMargaritaSolo),
+      granizado("gl-mangomanzana", "MANGOMANZANA", "Mango biche manzana, Tequila, Four Loko", imgMangomanzana, "Granizado con licor", imgMangomanzanaSolo),
     ],
   },
   {
@@ -238,13 +257,8 @@ const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
     label: "Cremosos",
     items: [
       { id: "cr-baileys", name: "CREMOSO DE BAILEYS", desc: "Licor de café, Baileys, Amaretto", photo: imgCremosoBaileys, context: "Cremoso", variants: single(K(18)) },
-      {
-        id: "cr-sin-licor",
-        name: "CREMOSOS SIN LICOR",
-        desc: "Milo · Oreo · Café · Chocorramo",
-        context: "Cremoso",
-        variants: ["Milo", "Oreo", "Café", "Chocorramo"].map((f) => ({ id: f.toLowerCase(), label: f, price: K(18) })),
-      },
+      { id: "cr-oreo-chocorramo", name: "OREO & CHOCORRAMO", desc: "Oreo · Chocorramo", photo: imgCremososOreoChocorramo, context: "Cremoso", variants: ["Oreo", "Chocorramo"].map((f) => ({ id: f.toLowerCase(), label: f, price: K(18) })) },
+      { id: "cr-cafe-milo", name: "CAFÉ & MILO", desc: "Café · Milo", photo: imgCremososCafeMilo, context: "Cremoso", variants: ["Café", "Milo"].map((f) => ({ id: f.toLowerCase(), label: f, price: K(18) })) },
     ],
   },
 ];
@@ -398,7 +412,7 @@ const INSTAGRAM_URL = "https://www.instagram.com/granizados.buga.tulua";
 const socials = [
   { id: "ig", name: "Instagram", handle: "@granizados.buga.tulua", followers: "+4K", icon: iconIG, color: "#E1306C", url: INSTAGRAM_URL, backdrop: false },
   { id: "tt", name: "TikTok", handle: "@granizados.tulua", followers: "+1K", icon: iconTT, color: "#FF00FF", url: "https://www.tiktok.com/@granizados.tulua", backdrop: true },
-  { id: "fb", name: "Facebook", handle: "Granizados Tulúa", followers: "+1K", icon: iconFB, color: "#0066FF", url: "https://www.facebook.com/share/1DhQAddCnE/", backdrop: false },
+  { id: "fb", name: "Facebook", handle: "Granizados Tuluá", followers: "+1K", icon: iconFB, color: "#0066FF", url: "https://www.facebook.com/share/1DhQAddCnE/", backdrop: false },
 ];
 
 const SECTIONS = [
@@ -431,35 +445,77 @@ function fmtHour(h: number) {
   return `${h12}:00 ${suffix}`;
 }
 
-type OpenStatus = { open: boolean; detail: string; /** día "comercial" (la madrugada cuenta como el día anterior) */ sessionDay: number };
+type OpenStatus = { open: boolean; detail: string; /** día "comercial" (la madrugada cuenta como el día anterior) */ sessionDay: number; label?: string };
+type OpenStatuses = Record<BranchId, OpenStatus>;
 
-function getOpenStatus(now = new Date(), branchId: BranchId = "tulua"): OpenStatus {
-  const day = now.getDay();
-  const hour = now.getHours() + now.getMinutes() / 60;
-  const openHour = OPEN_HOUR[branchId][day];
-  const closeHour = CLOSE_HOUR[branchId];
+const COLOMBIA_TIME_ZONE = "America/Bogota";
+const colombiaTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: COLOMBIA_TIME_ZONE,
+  weekday: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+const WEEKDAY_INDEX: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
-  // Dentro de la franja de hoy (4 PM – medianoche).
-  if (hour >= openHour) return { open: true, detail: `Cierra a las ${fmtHour(closeHour[day])}`, sessionDay: day };
+function getColombiaParts(date: Date) {
+  const parts = Object.fromEntries(colombiaTimeFormatter.formatToParts(date).map((part) => [part.type, part.value]));
+  return { day: WEEKDAY_INDEX[parts.weekday], minutes: Number(parts.hour) * 60 + Number(parts.minute) };
+}
 
-  // Madrugada: todavía dentro de la extensión nocturna del día comercial anterior.
-  const prev = (day + 6) % 7;
-  const prevClose = closeHour[prev];
-  if (prevClose > 24 && hour < prevClose - 24) {
-    return { open: true, detail: `Cierra a las ${fmtHour(prevClose)}`, sessionDay: prev };
+function getOpenStatus(date: Date, branchId: BranchId): OpenStatus {
+  const { day, minutes } = getColombiaParts(date);
+  const schedule = BRANCH_SCHEDULE[branchId];
+  const today = schedule[day];
+  if (minutes >= today.open * 60) return { open: true, detail: `Cierra a las ${fmtHour(today.close)}`, sessionDay: day };
+
+  const previousDay = (day + 6) % 7;
+  const previous = schedule[previousDay];
+  if (previous.close > 24 && minutes < (previous.close - 24) * 60) {
+    return { open: true, detail: `Cierra a las ${fmtHour(previous.close)}`, sessionDay: previousDay };
   }
 
-  return { open: false, detail: `Abrimos hoy a las ${fmtHour(openHour)}`, sessionDay: day };
+  return { open: false, detail: `Abrimos hoy a las ${fmtHour(today.open)}`, sessionDay: day };
+}
+
+/** Devuelve el estado de ambas sedes usando siempre la hora de Colombia. */
+function getOpenStatuses(date: Date): OpenStatuses {
+  return { tulua: getOpenStatus(date, "tulua"), buga: getOpenStatus(date, "buga") };
+}
+
+function getScheduleDate() {
+  if (import.meta.env.DEV) {
+    const value = new URLSearchParams(window.location.search).get("simular");
+    const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+    if (match) {
+      const [, year, month, day, hour, minute] = match.map(Number);
+      if (hour < 24 && minute < 60) return new Date(Date.UTC(year, month - 1, day, hour + 5, minute));
+    }
+  }
+  return new Date();
 }
 
 /** Re-evalúa el estado abierto/cerrado cada minuto. */
-function useOpenStatus(branchId: BranchId = "tulua") {
-  const [status, setStatus] = useState(() => getOpenStatus(new Date(), branchId));
+function useOpenStatuses() {
+  const [statuses, setStatuses] = useState(() => getOpenStatuses(getScheduleDate()));
   useEffect(() => {
-    const id = window.setInterval(() => setStatus(getOpenStatus(new Date(), branchId)), 60_000);
+    const id = window.setInterval(() => setStatuses(getOpenStatuses(getScheduleDate())), 60_000);
     return () => window.clearInterval(id);
-  }, [branchId]);
-  return status;
+  }, []);
+  return statuses;
+}
+
+function getNavbarStatus(statuses: OpenStatuses): OpenStatus {
+  const tuluaOpen = statuses.tulua.open;
+  const bugaOpen = statuses.buga.open;
+  const label = tuluaOpen && bugaOpen
+    ? "Abierto"
+    : bugaOpen
+      ? "Abierto en Buga"
+      : tuluaOpen
+        ? "Abierto en Tuluá"
+        : "Cerrado";
+  return { ...statuses.tulua, open: tuluaOpen || bugaOpen, label };
 }
 
 const waChatUrl = (branch: Branch, text?: string) =>
@@ -565,43 +621,42 @@ function buildOrderWhatsAppMessage(items: ResolvedLine[], form: OrderForm, freeD
   const branch = BRANCHES[form.branch];
   const total = items.reduce((sum, l) => sum + l.variant.price * l.quantity, 0);
   const lines = items.map(({ product, variant, quantity }) => {
-    const detail = [variant.label, product.context].filter(Boolean).join(" · ");
-    return `  • ${quantity}x ${product.name}${detail ? ` (${detail})` : ""} — ${money(variant.price * quantity)}`;
+    const detail = [variant.label, product.context].filter(Boolean).join(" - ");
+    return `- ${quantity}x ${product.name}${detail ? ` (${detail})` : ""} - ${money(variant.price * quantity)}`;
   });
   const isDelivery = form.delivery === "domicilio";
 
   const sections = [
-    "📋 *NUEVO PEDIDO - GRANIZADOS COCKTAILS*",
+    "*NUEVO PEDIDO - GRANIZADOS COCKTAILS*",
     "",
-    `🏪 *Sede:* ${branch.name}`,
+    `*Sede:* ${branch.name}`,
     "",
-    "*🍹 PRODUCTOS:*",
+    "*Productos:*",
     ...lines,
     "",
-    "*📍 ENTREGA:*",
+    "*Entrega:*",
     isDelivery
-      ? `  ${freeDelivery ? "🎉 " : ""}Domicilio${freeDelivery ? " (¡Domicilio gratis!)" : ""}`
+      ? `  ${freeDelivery ? "Domicilio gratis" : "Domicilio"}`
       : `  Recojo en la sede ${branch.name}`,
-    ...(isDelivery ? [`  📌 ${form.address.trim()}`] : []),
+    ...(isDelivery ? ["", "*Dirección:*", `  ${form.address.trim()}`] : []),
     "",
-    "*💳 Método de pago:*",
+    "*Método de pago:*",
     `  ${PAYMENT_LABEL[form.payment]}`,
   ];
 
   if (form.notes.trim()) {
     sections.push("");
-    sections.push("*📝 Notas especiales:*");
+    sections.push("*Notas especiales:*");
     sections.push(`  ${form.notes.trim()}`);
   }
 
   sections.push("");
-  sections.push("*💰 TOTAL:*");
-  sections.push(`  *${money(total)}*`);
+  sections.push(`*Total:* ${money(total)}`);
   sections.push("");
   sections.push(
     isDelivery && !freeDelivery
-      ? "¿Confirman disponibilidad y valor del domicilio? ¡Gracias! 🙏"
-      : "¿Confirman disponibilidad? ¡Gracias! 🙏"
+      ? "¿Confirman disponibilidad y valor del domicilio? ¡Gracias!"
+      : "¿Confirman disponibilidad? ¡Gracias!"
   );
 
   return sections.join("\n");
@@ -693,10 +748,11 @@ function SectionHeading({ id, eyebrow, title, children, className }: { id: strin
 }
 
 function StatusPill({ status, showDetail = false }: { status: OpenStatus; showDetail?: boolean }) {
+  const label = status.label ?? (status.open ? "Abierto" : "Cerrado");
   return (
-    <span className={`status-pill ${status.open ? "is-open" : "is-closed"}`}>
+    <span className={`status-pill ${status.open ? "is-open" : "is-closed"}`} aria-label={`${label}. ${status.detail}`}>
       <span className="status-dot" aria-hidden="true" />
-      <span>{status.open ? "Abierto" : "Cerrado"}</span>
+      <span>{label}</span>
       {showDetail ? <span className="status-detail">· {status.detail}</span> : <span className="sr-only">. {status.detail}</span>}
     </span>
   );
@@ -724,7 +780,7 @@ function Sheet({ open, onClose, labelledBy, children, className = "" }: {
   );
 }
 
-type AddHandler = (product: Product) => void;
+type AddHandler = (product: Product, variantId?: string) => void;
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 5. COMPONENTS
@@ -841,7 +897,7 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
   };
 
   return (
-    <article className={`product-card${product.photo ? "" : " product-card--text"}${compact ? " product-card--compact" : ""}${added ? " is-added" : ""}`}>
+    <article className={`product-card${compact ? " product-card--compact" : ""}${added ? " is-added" : ""}`}>
       {product.photo && (
         <div className={`product-media${product.tall ? " product-media--tall" : ""}${product.glow ? " product-media--glow" : ""}`}>
           <img src={product.photo} alt="" width={300} height={product.tall ? 450 : 400} loading="lazy" decoding="async" />
@@ -854,12 +910,46 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
         <div className="product-foot">
           <div className="price-with-badge">
             <span className="price">{priceLabel(product)}</span>
-            {product.context === "Recomendado" && <span className="badge-recomendado">RECOMENDADO</span>}
           </div>
           <button type="button" className="add-btn stretched" onClick={handle}
             aria-label={`${multi ? "Elegir opción de" : "Agregar"} ${product.name} al pedido, ${priceLabel(product)}`}>
             <Icon name={added ? "check" : "plus"} size={16} strokeWidth={2.5} />
             <span>{added ? "Listo" : "Agregar"}</span>
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function GranizadoCard({ product, onAdd }: { product: Product; onAdd: AddHandler }) {
+  const [variantId, setVariantId] = useState("gomas");
+  const variant = product.variants.find((v) => v.id === variantId) ?? product.variants[0];
+  const photo = variant.photo ?? product.photo;
+
+  return (
+    <article className="product-card">
+      {photo && (
+        <div className={`product-media${product.tall ? " product-media--tall" : ""}${variant.photo ? " product-media--glow" : ""}`}>
+          <img src={photo} alt="" width={300} height={product.tall ? 450 : 400} loading="lazy" decoding="async" />
+        </div>
+      )}
+      <div className="product-body">
+        <h3 className="product-name">{product.name}</h3>
+        <p className="product-desc">{product.desc}</p>
+        <div className="product-foot">
+          <div className="variant-price-buttons" role="group" aria-label={`Precio de ${product.name}`}>
+            {product.variants.map((v) => (
+              <button key={v.id} type="button" className="variant-price-button" aria-pressed={variantId === v.id}
+                onClick={(e) => { e.stopPropagation(); setVariantId(v.id); }}>
+                {fmtK(v.price)}
+              </button>
+            ))}
+          </div>
+          <button type="button" className="add-btn stretched" onClick={() => onAdd(product, variant.id)}
+            aria-label={`Elegir opción de ${product.name}, ${fmtK(variant.price)}`}>
+            <Icon name="plus" size={16} strokeWidth={2.5} />
+            <span>Agregar</span>
           </button>
         </div>
       </div>
@@ -874,7 +964,7 @@ function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
 
       <div className="section-inner">
         <Reveal>
-          <SectionHeading id="promos-title" eyebrow="Cada semana" title="Promociones semanales" />
+          <SectionHeading id="promos-title" eyebrow="Cada semana" title="Promociones" />
         </Reveal>
         <Reveal delay={60}>
           <div className="rail rail--promos" role="list" aria-labelledby="promos-title">
@@ -985,7 +1075,9 @@ function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
                 <div className="product-grid" key={cat}>
                   {category.items.map((p, i) => (
                     <div key={p.id} className="grid-item" style={{ "--i": i } as CSSProperties}>
-                      <ProductCard product={p} onAdd={onAdd} />
+                      {p.variants.some((v) => v.id === "gomas") && p.variants.some((v) => v.id === "full")
+                        ? <GranizadoCard product={p} onAdd={onAdd} />
+                        : <ProductCard product={p} onAdd={onAdd} />}
                     </div>
                   ))}
                 </div>
@@ -1084,9 +1176,10 @@ function SectionSucursales({ statuses, onOrderHere }: { statuses: Record<BranchI
                   <div className="schedule">
                     <h4 className="label">Horario</h4>
                     <dl>
-                      {SCHEDULE_ROWS[id].map(([d, h]) => (
-                        <div key={d}><dt>{d}</dt><dd>{h}</dd></div>
-                      ))}
+                      {SCHEDULE_DAY_ORDER.map((day) => {
+                        const row = BRANCH_SCHEDULE[id][day];
+                        return <div key={`${row.label}-${day}`}><dt>{row.label}</dt><dd>{row.hours}</dd></div>;
+                      })}
                     </dl>
                   </div>
 
@@ -1151,21 +1244,22 @@ function SectionRedes({ onOpenWhatsApp }: { onOpenWhatsApp: () => void }) {
 }
 
 // ── selector de variante ─────────────────────────────────────────────────────
-function VariantPicker({ product, status, onClose, onConfirm }: {
-  product: Product | null; status: OpenStatus; onClose: () => void; onConfirm: (p: Product, variantId: string, qty: number) => void;
+function VariantPicker({ product, initialVariantId, status, onClose, onConfirm }: {
+  product: Product | null; initialVariantId?: string; status: OpenStatus; onClose: () => void; onConfirm: (p: Product, variantId: string, qty: number) => void;
 }) {
   const [variantId, setVariantId] = useState("");
   const [qty, setQty] = useState(1);
 
   useEffect(() => {
     if (product) {
-      setVariantId(product.variants[0].id);
+      setVariantId(initialVariantId && product.variants.some((v) => v.id === initialVariantId) ? initialVariantId : product.variants[0].id);
       setQty(1);
     }
-  }, [product]);
+  }, [product, initialVariantId]);
 
   const promo = product ? promos.find((p) => p.product?.id === product.id) : undefined;
   const variant = product?.variants.find((v) => v.id === variantId) ?? product?.variants[0];
+  const variantPhoto = variant?.photo ?? product?.photo;
 
   return (
     <Sheet open={!!product} onClose={onClose} labelledBy="picker-title" className="sheet--picker">
@@ -1176,7 +1270,9 @@ function VariantPicker({ product, status, onClose, onConfirm }: {
             <button type="button" className="icon-btn" onClick={onClose} aria-label="Cerrar"><Icon name="close" /></button>
           </div>
           <div className="sheet-body">
-            {product.photo && !promo && <img className="picker-photo" src={product.photo} alt="" width={120} height={160} />}
+            {variantPhoto && !promo && (
+              <img className={`picker-photo${variant?.photo ? " product-media--glow" : ""}`} src={variantPhoto} alt="" width={120} height={160} />
+            )}
             <p className="picker-desc">{product.desc}</p>
             {promo && status.sessionDay !== promo.weekday && (
               <p className="notice notice--warn">Esta promo aplica solo los {promo.day.toLowerCase()}.</p>
@@ -1363,7 +1459,10 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
                       const label = `${l.product.name}${l.variant.label ? `, ${l.variant.label}` : ""}`;
                       return (
                         <li key={`${l.productId}::${l.variantId}`} className="cart-line">
-                          {l.product.photo ? <img src={l.product.photo} alt="" width={48} height={64} /> : <img src={logoNeon} alt="" width={48} height={64} className="cart-thumb" />}
+                          {(l.variant.photo ?? l.product.photo) ? (
+                            <img src={l.variant.photo ?? l.product.photo} alt="" width={48} height={64}
+                              className={l.variant.photo ? "product-media--glow" : undefined} />
+                          ) : <img src={logoNeon} alt="" width={48} height={64} className="cart-thumb" />}
                           <div className="cart-line-info">
                             <span className="cart-line-name">{l.product.name}</span>
                             <span className="cart-line-meta">{[l.variant.label, l.product.context].filter(Boolean).join(" · ")}</span>
@@ -1435,7 +1534,10 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
                   <ul className="cart-list cart-list--review" aria-label="Resumen de productos">
                     {items.map((l) => (
                       <li key={`${l.productId}::${l.variantId}`} className="cart-line cart-line--readonly">
-                        {l.product.photo ? <img src={l.product.photo} alt="" width={48} height={64} /> : <img src={logoNeon} alt="" width={48} height={64} className="cart-thumb" />}
+                        {(l.variant.photo ?? l.product.photo) ? (
+                          <img src={l.variant.photo ?? l.product.photo} alt="" width={48} height={64}
+                            className={l.variant.photo ? "product-media--glow" : undefined} />
+                        ) : <img src={logoNeon} alt="" width={48} height={64} className="cart-thumb" />}
                         <div className="cart-line-info">
                           <span className="cart-line-name">{l.product.name}</span>
                           <span className="cart-line-meta">{[l.variant.label, l.product.context].filter(Boolean).join(" · ")}</span>
@@ -1542,14 +1644,17 @@ function WhatsAppFloat({ open, onToggle }: { open: boolean; onToggle: () => void
 
 export default function App() {
   const { dark, toggle } = useTheme();
-  const status = useOpenStatus("tulua");
-  const bugaStatus = useOpenStatus("buga");
+  const statuses = useOpenStatuses();
+  const status = statuses.tulua;
+  const bugaStatus = statuses.buga;
+  const navbarStatus = getNavbarStatus(statuses);
   const [active, setActive] = useState("inicio");
 
   const [cart, dispatch] = useReducer(cartReducer, undefined, () => sanitizeCart(load<unknown>(CART_KEY, [])));
   const [order, setOrder] = useState<OrderForm>(loadOrder);
   const [cartOpen, setCartOpen] = useState(false);
   const [picker, setPicker] = useState<Product | null>(null);
+  const [pickerVariantId, setPickerVariantId] = useState<string | undefined>();
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
   const [whatsappOpen, setWhatsappOpen] = useState(false);
 
@@ -1590,8 +1695,11 @@ export default function App() {
     setToast({ id: Date.now(), text: `${quantity > 1 ? `${quantity}× ` : ""}${product.name}${variant?.label ? ` (${variant.label})` : ""}` });
   }, []);
 
-  const handleAdd = useCallback<AddHandler>((product) => {
-    if (product.variants.length > 1 || promos.some((p) => p.product?.id === product.id)) setPicker(product);
+  const handleAdd = useCallback<AddHandler>((product, variantId) => {
+    if (product.variants.length > 1 || promos.some((p) => p.product?.id === product.id)) {
+      setPickerVariantId(variantId);
+      setPicker(product);
+    }
     else addToCart(product, product.variants[0].id);
   }, [addToCart]);
 
@@ -1604,7 +1712,7 @@ export default function App() {
     <div className={`app-shell${cartCount ? " has-cart" : ""}`}>
       <a className="skip-link" href="#menu">Saltar al menú</a>
 
-      <Header dark={dark} onToggleTheme={toggle} status={status} active={active} cartCount={cartCount} onOpenCart={() => setCartOpen(true)} />
+      <Header dark={dark} onToggleTheme={toggle} status={navbarStatus} active={active} cartCount={cartCount} onOpenCart={() => setCartOpen(true)} />
 
       <main id="contenido">
         <SectionInicio onAdd={handleAdd} />
@@ -1648,7 +1756,7 @@ export default function App() {
         )}
       </div>
 
-      <VariantPicker product={picker} status={status} onClose={() => setPicker(null)}
+      <VariantPicker product={picker} initialVariantId={pickerVariantId} status={status} onClose={() => setPicker(null)}
         onConfirm={(p, v, q) => { addToCart(p, v, q); setPicker(null); }} />
 
       <CartSheet open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} dispatch={dispatch}

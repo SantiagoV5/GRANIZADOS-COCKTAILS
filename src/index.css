@@ -754,19 +754,25 @@ button svg, a svg { flex-shrink: 0; }
   white-space: nowrap;
 }
 .product-card--compact .price { font-size: 14px; }
-.badge-recomendado {
-  display: inline-block;
+.variant-price-buttons { display: flex; align-items: center; gap: 6px; min-height: 24px; }
+.variant-price-button {
   padding: 2px 8px;
+  border: 1px solid transparent;
   border-radius: 6px;
-  background: var(--accent-fill);
-  color: #fff;
-  font: 700 9px var(--font-sub);
-  letter-spacing: .3px;
-  text-transform: uppercase;
-  box-shadow: 0 0 8px rgba(255, 0, 255, .5);
-  white-space: nowrap;
+  background: transparent;
+  color: var(--text-muted);
+  font: 700 14px var(--font-price);
+  cursor: pointer;
+  transition: color .2s, border-color .2s, box-shadow .2s, background-color .2s;
 }
-
+.variant-price-button[aria-pressed="true"] {
+  border-color: var(--fucsia);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--fucsia) 10%, transparent);
+  box-shadow: 0 0 10px rgba(255, 0, 255, .45);
+}
+.variant-price-button:hover, .variant-price-button:focus-visible { color: var(--accent); border-color: var(--fucsia); }
+.variant-price-button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .add-btn {
   display: inline-flex;
   align-items: center;
@@ -789,14 +795,6 @@ button svg, a svg { flex-shrink: 0; }
 .stretched::after { content: ""; position: absolute; inset: 0; z-index: 1; }
 .stretched:focus-visible { outline: none; }
 .stretched:focus-visible::after { outline: 3px solid var(--focus-ring); outline-offset: -3px; border-radius: var(--radius); }
-
-.product-card--text {
-  grid-column: 1 / -1;
-  background: var(--panel-bg), var(--bg-card);
-  border-color: var(--fucsia);
-}
-.product-card--text .product-name { color: var(--accent); font-size: 24px; }
-.product-card--text .product-body { padding: 18px; }
 
 /* ── menú ── */
 .menu-search {
@@ -901,7 +899,6 @@ button svg, a svg { flex-shrink: 0; }
 
 .product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .grid-item { display: flex; animation: fade-up .45s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 40ms); }
-.grid-item:has(.product-card--text) { grid-column: 1 / -1; }
 @media (min-width: 900px) {
   .segmented { max-width: 560px; }
   .chips { max-width: 560px; }
