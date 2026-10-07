@@ -142,6 +142,7 @@ type Branch = {
   city: string;
   whatsapp: string; // formato wa.me: 57 + número, sin + ni espacios
   mapsQuery: string;
+  mapsCoordinates?: string;
 };
 
 const BRANCHES: Record<BranchId, Branch> = {
@@ -149,10 +150,11 @@ const BRANCHES: Record<BranchId, Branch> = {
     id: "tulua",
     name: "Tuluá",
     tag: "Sede principal",
-    address: "Cra 27A #41-07 Av. Cali",
+    address: "Cra 27A #41A-39 Av. Cali",
     city: "Tuluá, Valle del Cauca",
     whatsapp: "573117672353",
-    mapsQuery: "Carrera 27A #41-07, Tuluá, Valle del Cauca, Colombia",
+    mapsQuery: "Carrera 27A #41A-39, Tuluá, Valle del Cauca, Colombia",
+    mapsCoordinates: "4.070173,-76.196872",
   },
   buga: {
     id: "buga",
@@ -532,10 +534,12 @@ function getNavbarStatus(statuses: OpenStatuses): OpenStatus {
 
 const waChatUrl = (branch: Branch, text?: string) =>
   `https://wa.me/${branch.whatsapp}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
-const mapsSearchUrl = (b: Branch) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.mapsQuery)}`;
-const mapsDirectionsUrl = (b: Branch) => `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(b.mapsQuery)}`;
+const mapsSearchUrl = (b: Branch) => `https://www.google.com/maps/search/?api=1&query=${b.mapsCoordinates ?? encodeURIComponent(b.mapsQuery)}`;
+const mapsDirectionsUrl = (b: Branch) => `https://www.google.com/maps/dir/?api=1&destination=${b.mapsCoordinates ?? encodeURIComponent(b.mapsQuery)}`;
 // Embed sin API key (modo "q"): Google geocodifica la dirección y pone el pin.
-const mapsEmbedUrl = (b: Branch) => `https://maps.google.com/maps?q=${encodeURIComponent(b.mapsQuery)}&z=16&output=embed`;
+const mapsEmbedUrl = (b: Branch) => b.mapsCoordinates
+  ? `https://www.google.com/maps?q=${b.mapsCoordinates}&output=embed`
+  : `https://maps.google.com/maps?q=${encodeURIComponent(b.mapsQuery)}&z=16&output=embed`;
 
 function useInView<T extends Element>(rootMargin = "200px") {
   const ref = useRef<T>(null);
@@ -990,7 +994,9 @@ function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
         </Reveal>
 
         <Reveal>
-          <SectionHeading id="rec-title" eyebrow="Los favoritos" title="Recomendados" />
+          <SectionHeading id="rec-title" eyebrow="Los favoritos" title="Recomendados">
+            <span className="section-heading-subtitle">(VASO 14 ONZAS)</span>
+          </SectionHeading>
         </Reveal>
         <Reveal delay={60}>
           <div className="rail rail--products" role="list" aria-labelledby="rec-title">

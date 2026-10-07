@@ -267,6 +267,7 @@ button svg, a svg { flex-shrink: 0; }
 .header-logo { display: flex; align-items: center; flex-shrink: 0; border-radius: 8px; }
 .logo-wordmark { height: 34px; width: auto; max-width: 150px; object-fit: contain; }
 .light-mode .logo-wordmark { filter: invert(1); }
+@media (min-width: 640px) { .logo-wordmark { height: 40px; } }
 
 .header-nav { display: none; }
 .header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
@@ -438,6 +439,7 @@ button svg, a svg { flex-shrink: 0; }
   font: 400 clamp(30px, 7vw, 46px)/1 var(--font-display);
   letter-spacing: 2px;
 }
+.section-heading-subtitle { display: block; margin-top: 4px; color: inherit; font: inherit; letter-spacing: inherit; line-height: 1; }
 .section-lead {
   margin: 8px 0 0;
   max-width: 52ch;
