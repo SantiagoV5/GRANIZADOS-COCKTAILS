@@ -277,6 +277,12 @@ const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
     label: "Cremosos",
     items: [
       { id: "cr-baileys", name: "CREMOSO DE BAILEYS", desc: "Licor de café, Baileys, Amaretto", photo: imgCremosoBaileys, context: "Cremoso", variants: single(K(18)) },
+    ],
+  },
+  {
+    id: "cremososSinLicor",
+    label: "CREMOSOS SIN LICOR",
+    items: [
       { id: "cr-oreo-chocorramo", name: "OREO & CHOCORRAMO", desc: "Oreo · Chocorramo", photo: imgCremososOreoChocorramo, context: "Cremoso", variants: ["Oreo", "Chocorramo"].map((f) => ({ id: f.toLowerCase(), label: f, price: K(18) })) },
       { id: "cr-cafe-milo", name: "CAFÉ & MILO", desc: "Café · Milo", photo: imgCremososCafeMilo, context: "Cremoso", variants: ["Café", "Milo"].map((f) => ({ id: f.toLowerCase(), label: f, price: K(18) })) },
     ],
