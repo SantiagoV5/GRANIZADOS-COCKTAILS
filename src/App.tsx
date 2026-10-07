@@ -283,7 +283,7 @@ const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
   },
   {
     id: "paraCompartir",
-    label: "Para compartir",
+    label: "Para compartir · NEVERAS EXPLOSIVAS",
     items: [
       { id: "nevera-tentadora", name: "La Tentadora (3-4 personas)", desc: "Granizado de preferencia, jeringas de licor, gomas y dulces", photo: imgNeveraLaTentadora, context: "Para compartir", variants: single(K(45)) },
       { id: "nevera-pecadora", name: "La Pecadora (3-4 personas)", desc: "Granizado de preferencia, 2 coronitas, jeringas de licor, gomas y dulces", photo: imgNeveraLaPecadora, context: "Para compartir", variants: single(K(75)) },
@@ -353,7 +353,7 @@ const CATALOG = new Map<string, Product>(
 const INSTAGRAM_URL = "https://www.instagram.com/granizados.buga.tulua";
 
 const socials = [
-  { id: "ig", name: "Instagram", handle: "@granizados.buga.tulua", followers: "+4K", icon: iconIG, color: "#E1306C", url: INSTAGRAM_URL, backdrop: false },
+  { id: "ig", name: "Instagram", handle: "@granizados.buga.tulua", followers: "+5K", icon: iconIG, color: "#E1306C", url: INSTAGRAM_URL, backdrop: false },
   { id: "tt", name: "TikTok", handle: "@granizados.tulua", followers: "+1K", icon: iconTT, color: "#FF00FF", url: "https://www.tiktok.com/@granizados.tulua", backdrop: true },
   { id: "fb", name: "Facebook", handle: "Granizados Tuluá", followers: "+1K", icon: iconFB, color: "#0066FF", url: "https://www.facebook.com/share/1DhQAddCnE/", backdrop: false },
 ];
@@ -1212,7 +1212,7 @@ function SectionRedes({ onOpenWhatsApp }: { onOpenWhatsApp: () => void }) {
                   </span>
                   <span className="social-name">Instagram</span>
                   <span className="social-handle">@granizados.buga.tulua</span>
-                  <span className="social-followers">+4K <span className="sr-only">seguidores</span></span>
+                  <span className="social-followers">+5K <span className="sr-only">seguidores</span></span>
                   <span className="social-cta">Síguenos<span className="sr-only"> (abre en una pestaña nueva)</span></span>
                 </a>
                 <InstagramReels />
