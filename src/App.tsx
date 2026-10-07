@@ -47,6 +47,18 @@ import imgMargarita from "@/imports/web/margarita-tequila.webp";
 import imgCremosoBaileys from "@/imports/web/cremoso-baileys.webp";
 import imgChicle from "@/imports/web/chicle.webp";
 import imgMangomanzana from "@/imports/web/mangomanzana.webp";
+import imgFrutosRojosGomas from "@/imports/web/frutos-rojos-gomas.webp";
+import imgJagermeisterGomas from "@/imports/web/jagermeister-gomas.webp";
+import imgMangomanzanaGomas from "@/imports/web/mangomanzana-gomas.webp";
+import imgMaracumangoGomas from "@/imports/web/maracumango-gomas.webp";
+import imgMargaritaGomas from "@/imports/web/margarita-tequila-gomas.webp";
+import imgMiamiNightGomas from "@/imports/web/miami-night-gomas.webp";
+import imgMoraAzulGomas from "@/imports/web/mora-azul-gomas.webp";
+import imgNocheArdienteGomas from "@/imports/web/noche-ardiente-gomas.webp";
+import imgPanteraRosaGomas from "@/imports/web/pantera-rosa-gomas.webp";
+import imgSmirnoffGomas from "@/imports/web/smirnoff-gomas.webp";
+import imgChicleGomas from "@/imports/web/chicle-gomas.webp";
+import imgFrutosIntensosGomas from "@/imports/web/frutos-intensos-gomas.webp";
 import imgCremososOreoChocorramo from "@/imports/web/cremosos-oreo-chocorramo.webp";
 import imgCremososCafeMilo from "@/imports/web/cremosos-cafe-milo.webp";
 import imgFrutosRojosSolo from "@/imports/web/frutos-rojos-solo.webp";
@@ -183,6 +195,7 @@ type Product = {
   name: string;
   desc: string;
   photo?: string;
+  idlePhoto?: string;
   /** Foto 2:3 (vaso completo); sin definir = 3:4. */
   tall?: boolean;
   glow?: boolean;
@@ -208,23 +221,22 @@ const GRANIZADO_VARIANTS: Variant[] = [
 
 const recommended: Product[] = [
   { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, tall: true, glow: true, badge: "Granizado Fest 2026", context: "Recomendado", kind: "granizado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
-  { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, tall: true, context: "Recomendado", kind: "granizado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
+  { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, tall: true, glow: true, context: "Recomendado", kind: "granizado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
   { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, tall: true, glow: true, context: "Recomendado", kind: "granizado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
   { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
   { id: "rec-fresada", name: "FRESADA", photo: imgFresada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
 ];
 
-const granizado = (id: string, name: string, desc: string, photo: string, context: string, soloPhoto?: string): Product => ({
+const granizado = (id: string, name: string, desc: string, photo: string, context: string, idlePhoto: string, gomasPhoto: string): Product => ({
   id,
   name,
   desc,
   photo,
+  idlePhoto,
   tall: true,
   context,
   kind: "granizado",
-  variants: soloPhoto
-    ? GRANIZADO_VARIANTS.map((v) => (v.id === "gomas" ? { ...v, photo: soloPhoto } : v))
-    : GRANIZADO_VARIANTS,
+  variants: GRANIZADO_VARIANTS.map((v) => (v.id === "gomas" ? { ...v, photo: gomasPhoto } : v)),
 });
 
 const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
@@ -232,24 +244,24 @@ const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
     id: "licor",
     label: "Con licor",
     items: [
-      granizado("gl-noche-ardiente", "NOCHE ARDIENTE", "Jägermeister, Bombombun, Tequila, Four Loko", imgNocheArdiente, "Granizado con licor", imgNocheArdienteSolo),
-      granizado("gl-mora-azul", "MORA AZUL", "Blueberry, Vodka", imgMoraAzul, "Granizado con licor", imgMoraAzulSolo),
-      granizado("gl-frutos-rojos", "FRUTOS ROJOS", "Bombombun, Fresa, Whisky", imgFrutosRojos, "Granizado con licor", imgFrutosRojosSolo),
-      granizado("gl-maracumango", "MARACUMANGO", "Mango, Maracuyá, Tequila", imgMaracumango, "Granizado con licor", imgMaracumangoSolo),
-      granizado("gl-smirnoff", "SMIRNOFF", "Lulo, Smirnoff, Vodka", imgSmirnoff, "Granizado con licor", imgSmirnoffSolo),
-      granizado("gl-pantera-rosa", "PANTERA ROSA", "Champagne, Nüvo, Vodka", imgPanteraRosa, "Granizado con licor", imgPanteraRosaSolo),
-      granizado("gl-jagermeister", "JÄGERMEISTER", "Naranja, Jägermeister, Whisky", imgJagermeister, "Granizado con licor", imgJagermeisterSolo),
-      granizado("gl-miami-night", "MIAMI NIGHT", "Uva, Triple sec, Tequila", imgMiamiNight, "Granizado con licor", imgMiamiNightSolo),
-      granizado("gl-margarita", "MARGARITA TEQUILA", "Cereza, Maracuyá, Tequila", imgMargarita, "Granizado con licor", imgMargaritaSolo),
-      granizado("gl-mangomanzana", "MANGOMANZANA", "Mango biche manzana, Tequila, Four Loko", imgMangomanzana, "Granizado con licor", imgMangomanzanaSolo),
+      granizado("gl-noche-ardiente", "NOCHE ARDIENTE", "Jägermeister, Bombombun, Tequila, Four Loko", imgNocheArdiente, "Granizado con licor", imgNocheArdienteSolo, imgNocheArdienteGomas),
+      granizado("gl-mora-azul", "MORA AZUL", "Blueberry, Vodka", imgMoraAzul, "Granizado con licor", imgMoraAzulSolo, imgMoraAzulGomas),
+      granizado("gl-frutos-rojos", "FRUTOS ROJOS", "Bombombun, Fresa, Whisky", imgFrutosRojos, "Granizado con licor", imgFrutosRojosSolo, imgFrutosRojosGomas),
+      granizado("gl-maracumango", "MARACUMANGO", "Mango, Maracuyá, Tequila", imgMaracumango, "Granizado con licor", imgMaracumangoSolo, imgMaracumangoGomas),
+      granizado("gl-smirnoff", "SMIRNOFF", "Lulo, Smirnoff, Vodka", imgSmirnoff, "Granizado con licor", imgSmirnoffSolo, imgSmirnoffGomas),
+      granizado("gl-pantera-rosa", "PANTERA ROSA", "Champagne, Nüvo, Vodka", imgPanteraRosa, "Granizado con licor", imgPanteraRosaSolo, imgPanteraRosaGomas),
+      granizado("gl-jagermeister", "JÄGERMEISTER", "Naranja, Jägermeister, Whisky", imgJagermeister, "Granizado con licor", imgJagermeisterSolo, imgJagermeisterGomas),
+      granizado("gl-miami-night", "MIAMI NIGHT", "Uva, Triple sec, Tequila", imgMiamiNight, "Granizado con licor", imgMiamiNightSolo, imgMiamiNightGomas),
+      granizado("gl-margarita", "MARGARITA TEQUILA", "Cereza, Maracuyá, Tequila", imgMargarita, "Granizado con licor", imgMargaritaSolo, imgMargaritaGomas),
+      granizado("gl-mangomanzana", "MANGOMANZANA", "Mango biche manzana, Tequila, Four Loko", imgMangomanzana, "Granizado con licor", imgMangomanzanaSolo, imgMangomanzanaGomas),
     ],
   },
   {
     id: "sinLicor",
     label: "Sin licor",
     items: [
-      granizado("gs-frutos-intensos", "FRUTOS INTENSOS", "Fresa, Bombombun", imgFrutosIntensos, "Granizado sin licor"),
-      granizado("gs-chicle", "CHICLE", "Sirope de chicle", imgChicle, "Granizado sin licor"),
+      granizado("gs-frutos-intensos", "FRUTOS INTENSOS", "Fresa, Bombombun", imgFrutosIntensos, "Granizado sin licor", imgFrutosIntensosGomas, imgFrutosIntensosGomas),
+      granizado("gs-chicle", "CHICLE", "Sirope de chicle", imgChicle, "Granizado sin licor", imgChicleGomas, imgChicleGomas),
     ],
   },
   {
@@ -923,14 +935,15 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
 }
 
 function GranizadoCard({ product, onAdd }: { product: Product; onAdd: AddHandler }) {
-  const [variantId, setVariantId] = useState("gomas");
-  const variant = product.variants.find((v) => v.id === variantId) ?? product.variants[0];
-  const photo = variant.photo ?? product.photo;
+  const [variantId, setVariantId] = useState<string | null>(null);
+  const variant = variantId ? product.variants.find((v) => v.id === variantId) : undefined;
+  const photo = variant?.photo ?? (variantId === "full" ? product.photo : product.idlePhoto ?? product.photo);
+  const glow = variantId !== "full" && !!photo;
 
   return (
     <article className="product-card">
       {photo && (
-        <div className={`product-media${product.tall ? " product-media--tall" : ""}${variant.photo ? " product-media--glow" : ""}`}>
+        <div className={`product-media${product.tall ? " product-media--tall" : ""}${glow ? " product-media--glow" : ""}`}>
           <img src={photo} alt="" width={300} height={product.tall ? 450 : 400} loading="lazy" decoding="async" />
         </div>
       )}
@@ -941,13 +954,13 @@ function GranizadoCard({ product, onAdd }: { product: Product; onAdd: AddHandler
           <div className="variant-price-buttons" role="group" aria-label={`Precio de ${product.name}`}>
             {product.variants.map((v) => (
               <button key={v.id} type="button" className="variant-price-button" aria-pressed={variantId === v.id}
-                onClick={(e) => { e.stopPropagation(); setVariantId(v.id); }}>
+                onClick={(e) => { e.stopPropagation(); setVariantId((current) => current === v.id ? null : v.id); }}>
                 {fmtK(v.price)}
               </button>
             ))}
           </div>
-          <button type="button" className="add-btn stretched" onClick={() => onAdd(product, variant.id)}
-            aria-label={`Elegir opción de ${product.name}, ${fmtK(variant.price)}`}>
+          <button type="button" className="add-btn stretched" onClick={() => onAdd(product, variantId ?? undefined)}
+            aria-label={`${variant ? "Elegir opción de" : "Agregar"} ${product.name}${variant ? `, ${fmtK(variant.price)}` : ""}`}>
             <Icon name="plus" size={16} strokeWidth={2.5} />
             <span>Agregar</span>
           </button>
@@ -1055,7 +1068,7 @@ function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
             {view === "granizados" ? (
               <div className="menu-panel" key="granizados">
                 <div className="price-notice">
-                  <h3 className="price-notice-title">Precios granizados</h3>
+                  <h3 className="price-notice-title">PRECIOS GRANIZADOS (VASO 14 ONZAS)</h3>
                   <dl className="price-notice-list">
                     <div><dt>Gomas</dt><dd>15K</dd></div>
                     <div><dt>Gomas, perlas explosivas, frutas</dt><dd>18K</dd></div>
