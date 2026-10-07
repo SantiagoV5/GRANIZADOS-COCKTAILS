@@ -61,6 +61,9 @@ import imgChicleGomas from "@/imports/web/chicle-gomas.webp";
 import imgFrutosIntensosGomas from "@/imports/web/frutos-intensos-gomas.webp";
 import imgCremososOreoChocorramo from "@/imports/web/cremosos-oreo-chocorramo.webp";
 import imgCremososCafeMilo from "@/imports/web/cremosos-cafe-milo.webp";
+import imgNeveraLaTentadora from "@/imports/web/nevera-la-tentadora.webp";
+import imgNeveraLaPecadora from "@/imports/web/nevera-la-pecadora.webp";
+import imgNeveraLaProhibida from "@/imports/web/nevera-la-prohibida.webp";
 import imgFrutosRojosSolo from "@/imports/web/frutos-rojos-solo.webp";
 import imgJagermeisterSolo from "@/imports/web/jagermeister-solo.webp";
 import imgMangomanzanaSolo from "@/imports/web/mangomanzana-solo.webp";
@@ -204,8 +207,6 @@ type Product = {
   badge?: string;
   /** Categoría legible (se usa en el pedido y en el mensaje de WhatsApp). */
   context?: string;
-  /** "cocktail" = coctelería/bebidas (solo recoger). Sin definir = granizado (admite domicilio). */
-  kind?: "granizado" | "cocktail";
   variants: Variant[];
 };
 
@@ -222,11 +223,11 @@ const GRANIZADO_VARIANTS: Variant[] = [
 ];
 
 const recommended: Product[] = [
-  { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, tall: true, glow: true, badge: "Granizado Fest 2026", context: "Recomendado", kind: "granizado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
-  { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, tall: true, glow: true, context: "Recomendado", kind: "granizado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
-  { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, tall: true, glow: true, context: "Recomendado", kind: "granizado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
-  { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
-  { id: "rec-fresada", name: "FRESADA", photo: imgFresada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", kind: "granizado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
+  { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, tall: true, glow: true, badge: "Granizado Fest 2026", context: "Recomendado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
+  { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, tall: true, glow: true, context: "Recomendado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
+  { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, tall: true, glow: true, context: "Recomendado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
+  { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
+  { id: "rec-fresada", name: "FRESADA", photo: imgFresada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
 ];
 
 const granizado = (id: string, name: string, desc: string, photo: string, context: string, idlePhoto: string, gomasPhoto: string): Product => ({
@@ -237,7 +238,6 @@ const granizado = (id: string, name: string, desc: string, photo: string, contex
   idlePhoto,
   tall: true,
   context,
-  kind: "granizado",
   variants: GRANIZADO_VARIANTS.map((v) => (v.id === "gomas" ? { ...v, photo: gomasPhoto } : v)),
 });
 
@@ -275,6 +275,15 @@ const granizadoCategories: { id: string; label: string; items: Product[] }[] = [
       { id: "cr-cafe-milo", name: "CAFÉ & MILO", desc: "Café · Milo", photo: imgCremososCafeMilo, context: "Cremoso", variants: ["Café", "Milo"].map((f) => ({ id: f.toLowerCase(), label: f, price: K(18) })) },
     ],
   },
+  {
+    id: "paraCompartir",
+    label: "Para compartir",
+    items: [
+      { id: "nevera-tentadora", name: "La Tentadora (3-4 personas)", desc: "Granizado de preferencia, jeringas de licor, gomas y dulces", photo: imgNeveraLaTentadora, context: "Para compartir", variants: single(K(45)) },
+      { id: "nevera-pecadora", name: "La Pecadora (3-4 personas)", desc: "Granizado de preferencia, 2 coronitas, jeringas de licor, gomas y dulces", photo: imgNeveraLaPecadora, context: "Para compartir", variants: single(K(75)) },
+      { id: "nevera-prohibida", name: "La Prohibida (5-6 personas)", desc: "Granizado de preferencia, 1 four loko, jeringas de licor, gomas y dulces", photo: imgNeveraLaProhibida, context: "Para compartir", variants: single(K(105)) },
+    ],
+  },
 ];
 
 // ── promociones ──────────────────────────────────────────────────────────────
@@ -292,7 +301,6 @@ const promos: Promo[] = [
       name: "PROMO VIERNES · GRANIZADOS CON GOMAS",
       desc: "Solo gomas. Escribe los sabores en las notas del pedido.",
       context: "Promo viernes",
-      kind: "granizado",
       photo: promoViernes,
       variants: [
         { id: "2", label: "2 granizados", price: K(20) },
@@ -312,7 +320,6 @@ const promos: Promo[] = [
       name: "PROMO MARTES · 2 CREMOSOS",
       desc: "Sabores: Milo, Café, Oreo, Chocorramo o Baileys. Escribe los sabores en las notas del pedido.",
       context: "Promo martes",
-      kind: "granizado",
       photo: promoMartes,
       variants: single(K(30)),
     },
@@ -327,96 +334,12 @@ const promos: Promo[] = [
   },
 ];
 
-// ── coctelería y bebidas (texto) ─────────────────────────────────────────────
-type CocktailItem = { name: string; price?: number; description?: string };
-type CocktailCategory = { title: string; items: CocktailItem[] };
-
-const cocktailCategories: CocktailCategory[] = [
-  { title: "CERVEZAS", items: [
-    { name: "Poker, A. Light, A. Original, Budweiser", price: K(6) },
-    { name: "Coronita", price: K(9) },
-    { name: "Club Colombia", price: K(7) },
-    { name: "Smirnoff", price: K(13) },
-  ] },
-  { title: "ENVENENADAS", items: [
-    { name: "Frutos Rojos / Tequila", price: K(16) },
-    { name: "Frutos Amarillos / Vodka", price: K(16) },
-    { name: "Frutos Verdes / Whisky", price: K(16) },
-  ] },
-  { title: "MICHELADAS", items: [
-    { name: "Micheladas con Fruta", description: "Mango Biche, Maracuyá, Cerezada" },
-    { name: "Cerveza Nacional", price: K(14) },
-    { name: "Cerveza Importada", price: K(16) },
-  ] },
-  { title: "COCKTAILS", items: [
-    { name: "ORGASMO", price: K(22), description: "Crema de Baileys, amaretto y licor de café" },
-    { name: "TEQUILA SUNRISE", price: K(20), description: "Jugo de naranja, tequila, triple sec y granadina" },
-    { name: "MARGARITA CLÁSICA", price: K(18), description: "Tequila, triple sec y limón" },
-    { name: "MARGARITA CON FRUTA", price: K(20) },
-    { name: "CUBA LIBRE", price: K(18), description: "Ron blanco, coca cola, limón y almíbar" },
-    { name: "MOJITO CLÁSICO", price: K(18), description: "Ron blanco, ginger, hojas de hierbabuena, limón y almíbar" },
-    { name: "FRUTOS ROJOS / AMARILLOS", price: K(20) },
-    { name: "LIMONADA ELÉCTRICA", price: K(22), description: "Tequila, vodka, ginebra, ron blanco, curaçao azul y limón" },
-    { name: "MARTINI", price: K(18), description: "Licor ginebra, vermouth y aceitunas" },
-    { name: "SEX ON THE BEACH", price: K(22), description: "Vodka, licor de durazno, zumo de naranja, jugo de arándanos" },
-    { name: "GIN TONIC", price: K(18), description: "Ginebra, agua tónica, limón y romero" },
-  ] },
-  { title: "NEVERAS EXPLOSIVAS (GRANIZADAS)", items: [
-    { name: "LA TENTADORA (3-4 PERSONAS)", price: K(40), description: "Granizado de preferencia, 2 coronitas, jeringas de licor, gomas y dulces" },
-    { name: "LA PECADORA (3-4 PERSONAS)", price: K(70), description: "Granizado de preferencia, 2 coronitas, jeringas de licor, gomas y dulces" },
-    { name: "LA PROHIBIDA (5-6 PERSONAS)", price: K(100), description: "Granizado de preferencia, 1 four loko, jeringas de licor, gomas y dulces" },
-  ] },
-  { title: "GRANIZADO BOMBA", items: [
-    { name: "FRESA BOOM O MANGO PARTY", description: "Granizado con licor, coronita o smirnoff, fruta picada, rodajas de naranja, perlas explosivas, paleta de corazón" },
-    { name: "CON CORONITA", price: K(22) },
-    { name: "CON SMIRNOFF", price: K(26) },
-  ] },
-  { title: "PECERAS LOCAS (LÍQUIDAS)", items: [
-    { name: "LA EXÓTICA (3 PERSONAS)", price: K(50), description: "2 coronitas o 1 smirnoff, whisky, ron, limón, maracuyá, soda y dulces" },
-    { name: "LA MÍSTICA (3 PERSONAS)", price: K(60), description: "Four loko, whisky, tequila, vodka, limón, mango, zumo de naranja, sirope de maracuyá, soda y dulces" },
-    { name: "NIGHT LOCA (6 PERSONAS)", price: K(75), description: "Four loko, tequila, vodka, whisky, ron, maracuyá, mango, limón, rodajas de naranja, zumo de naranja, soda y dulces" },
-  ] },
-  { title: "MICHELADAS SODIFICADAS", items: [
-    { name: "Frutos Rojos (cereza)", price: K(12) },
-    { name: "Frutos Verdes (mango)", price: K(12) },
-    { name: "Frutos Amarillos (maracuyá)", price: K(12) },
-  ] },
-  { title: "OTRAS BEBIDAS", items: [
-    { name: "Four Loko", price: K(20) },
-    { name: "Botella de agua", price: K(3) },
-    { name: "Gatorade", price: K(6) },
-    { name: "Coca Cola", price: K(5) },
-    { name: "Bretaña personal", price: K(5) },
-  ] },
-];
-
-/** Izquierda: Cervezas → Cocktails. Derecha: Neveras explosivas → Otras bebidas. */
-const COCKTAIL_COLUMNS: CocktailCategory[][] = [cocktailCategories.slice(0, 4), cocktailCategories.slice(4)];
-
-const slug = (s: string) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-const cocktailId = (cat: CocktailCategory, item: CocktailItem) => `coc-${slug(cat.title)}-${slug(item.name)}`;
-
-const cocktailProducts: Product[] = cocktailCategories.flatMap((cat) =>
-  cat.items
-    .filter((item) => item.price !== undefined)
-    .map((item) => ({
-      id: cocktailId(cat, item),
-      name: item.name,
-      desc: item.description ?? "",
-      context: cat.title.charAt(0) + cat.title.slice(1).toLowerCase(),
-      kind: "cocktail" as const,
-      variants: single(item.price!),
-    })),
-);
-
 /** Catálogo único: el pedido guarda sólo {productId, variantId, quantity} y resuelve aquí. */
 const CATALOG = new Map<string, Product>(
   [
     ...recommended,
     ...granizadoCategories.flatMap((c) => c.items),
     ...promos.flatMap((p) => (p.product ? [p.product] : [])),
-    ...cocktailProducts,
   ].map((p) => [p.id, p]),
 );
 
@@ -1035,8 +958,6 @@ const SEARCHABLE: { product: Product; haystack: string }[] = [...CATALOG.values(
 }));
 
 function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
-  const [view, setView] = useState<"granizados" | "cocteleria">("granizados");
-  const [cat, setCat] = useState(granizadoCategories[0].id);
   const [query, setQuery] = useState("");
 
   const results = useMemo(() => {
@@ -1044,8 +965,6 @@ function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
     if (!tokens.length) return null;
     return SEARCHABLE.filter((s) => tokens.every((t) => s.haystack.includes(t))).map((s) => s.product);
   }, [query]);
-
-  const category = granizadoCategories.find((c) => c.id === cat) ?? granizadoCategories[0];
 
   return (
     <section id="menu" className="section" aria-labelledby="menu-title">
@@ -1066,71 +985,33 @@ function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
           </div>
         ) : (
           <>
-            <div className="segmented" role="group" aria-label="Tipo de menú">
-              <button type="button" aria-pressed={view === "granizados"} onClick={() => setView("granizados")}>MENÚ GRANIZADOS</button>
-              <button type="button" aria-pressed={view === "cocteleria"} onClick={() => setView("cocteleria")}>MENÚ COCTELERÍA, BEBIDAS Y MÁS</button>
+            <div className="menu-panel">
+              <h3 className="price-notice-title menu-subtitle">MENÚ GRANIZADOS</h3>
+              <div className="price-notice">
+                <h3 className="price-notice-title">PRECIOS GRANIZADOS (VASO 14 ONZAS)</h3>
+                <dl className="price-notice-list">
+                  <div><dt>Gomas</dt><dd>15K</dd></div>
+                  <div><dt>Gomas, perlas explosivas, frutas</dt><dd>18K</dd></div>
+                  <div><dt>Cremosos</dt><dd>18K</dd></div>
+                  <div><dt>Recomendados</dt><dd>20K</dd></div>
+                </dl>
+              </div>
+
+              {granizadoCategories.map((category) => (
+                <section key={category.id} className="menu-category" aria-labelledby={`menu-category-${category.id}`}>
+                  <h3 id={`menu-category-${category.id}`} className="price-notice-title">{category.label}</h3>
+                  <div className="product-grid">
+                    {category.items.map((p, i) => (
+                      <div key={p.id} className="grid-item" style={{ "--i": i } as CSSProperties}>
+                        {p.variants.some((v) => v.id === "gomas") && p.variants.some((v) => v.id === "full")
+                          ? <GranizadoCard product={p} onAdd={onAdd} />
+                          : <ProductCard product={p} onAdd={onAdd} />}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
             </div>
-
-            {view === "granizados" ? (
-              <div className="menu-panel" key="granizados">
-                <div className="price-notice">
-                  <h3 className="price-notice-title">PRECIOS GRANIZADOS (VASO 14 ONZAS)</h3>
-                  <dl className="price-notice-list">
-                    <div><dt>Gomas</dt><dd>15K</dd></div>
-                    <div><dt>Gomas, perlas explosivas, frutas</dt><dd>18K</dd></div>
-                    <div><dt>Cremosos</dt><dd>18K</dd></div>
-                    <div><dt>Recomendados</dt><dd>20K</dd></div>
-                  </dl>
-                </div>
-
-                <div className="chips" role="group" aria-label="Categoría de granizados">
-                  {granizadoCategories.map((c) => (
-                    <button key={c.id} type="button" className="chip" aria-pressed={cat === c.id} onClick={() => setCat(c.id)}>
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="product-grid" key={cat}>
-                  {category.items.map((p, i) => (
-                    <div key={p.id} className="grid-item" style={{ "--i": i } as CSSProperties}>
-                      {p.variants.some((v) => v.id === "gomas") && p.variants.some((v) => v.id === "full")
-                        ? <GranizadoCard product={p} onAdd={onAdd} />
-                        : <ProductCard product={p} onAdd={onAdd} />}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="menu-panel cocktail-panel" key="cocteleria">
-                <div className="cocktail-heading">
-                  <h3 className="cocktail-heading-title">COCTELERÍA, BEBIDAS Y MÁS</h3>
-                  <button type="button" className="cocktail-back-button" onClick={() => setView("granizados")}>VOLVER</button>
-                </div>
-                <div className="cocktail-columns">
-                  {COCKTAIL_COLUMNS.map((column, ci) => (
-                    <div key={ci} className="cocktail-column">
-                      {column.map((cat) => (
-                        <div key={cat.title} className="cocktail-category">
-                          <h4>{cat.title}</h4>
-                          <ul className="cocktail-items">
-                            {cat.items.map((item) => (
-                              <li key={item.name} className="cocktail-item">
-                                <div className="cocktail-item-line">
-                                  <span className="cocktail-item-name">{item.name}</span>
-                                  {item.price !== undefined && <span className="cocktail-item-price">{fmtK(item.price)}</span>}
-                                </div>
-                                {item.description && <p className="cocktail-item-desc">{item.description}</p>}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
@@ -1368,8 +1249,7 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
   const freeDelivery = status.sessionDay === 4;
   const isDelivery = order.delivery === "domicilio";
   const branch = BRANCHES[order.branch];
-  /** Domicilio solo aplica si el pedido trae únicamente granizados (coctelería/bebidas → solo recoger). */
-  const canDeliver = items.length > 0 && items.every((l) => l.product.kind !== "cocktail");
+  const canDeliver = items.length > 0;
 
   useEffect(() => {
     if (!open) {
@@ -1519,10 +1399,6 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
                         : []),
                       { value: "recoger", label: "Recoger en sede", hint: `Sede ${branch.name}` },
                     ]} />
-                  {!canDeliver && items.some((l) => l.product.kind === "cocktail") && (
-                    <p className="muted small">Coctelería y bebidas solo están disponibles para recoger en sede.</p>
-                  )}
-
                   {isDelivery && (
                     <div className="field">
                       <label htmlFor="order-address">Dirección de entrega <span aria-hidden="true">*</span></label>
