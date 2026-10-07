@@ -840,8 +840,6 @@ button svg, a svg { flex-shrink: 0; }
 
 .menu-panel { animation: fade-up .35s var(--ease-out); }
 
-.menu-subtitle { margin-bottom: 16px; }
-
 .price-notice {
   margin-bottom: 16px;
   padding: 14px 16px;
@@ -973,7 +971,8 @@ button svg, a svg { flex-shrink: 0; }
 .social-grid { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .social-grid > li, .social-grid .reveal { display: flex; }
 .social-grid .reveal { width: 100%; }
-@media (min-width: 900px) { .social-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
+@media (min-width: 900px) { .social-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+.social-grid-instagram { grid-column: 1 / -1; }
 .social-card {
   --social-color: #FF00FF;
   width: 100%;
@@ -993,6 +992,9 @@ button svg, a svg { flex-shrink: 0; }
   text-decoration: none;
   transition: transform .3s var(--ease-out), box-shadow .3s;
 }
+.social-card--instagram { align-items: stretch; justify-content: flex-start; padding: 22px; }
+.social-card-content { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text-primary); text-align: center; text-decoration: none; }
+.social-card--instagram .social-card-content .social-cta { margin-top: 4px; }
 .light-mode .social-card { box-shadow: 0 2px 12px rgba(0, 0, 0, .08); }
 .social-card:hover { transform: translateY(-5px); box-shadow: 0 10px 32px color-mix(in srgb, var(--social-color) 50%, transparent); }
 .social-card:active { transform: scale(.97); }
@@ -1015,6 +1017,84 @@ button svg, a svg { flex-shrink: 0; }
   transition: background-color .25s;
 }
 .social-card:hover .social-cta { background: color-mix(in srgb, var(--social-color) 18%, transparent); }
+.reels { position: relative; margin-top: 24px; }
+.reels-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(82%, 1fr);
+  gap: 14px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  padding-bottom: 4px;
+}
+.reel-card {
+  min-width: 0;
+  overflow: hidden;
+  scroll-snap-align: start;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg);
+}
+.reel-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font: 700 12px var(--font-sub);
+  letter-spacing: 1px;
+}
+.reel-card-head span { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); }
+.reel-card-head a { display: inline-flex; color: var(--text-secondary); }
+.reel-card-head a:hover { color: var(--accent); }
+.reel-video-wrap { position: relative; aspect-ratio: 9 / 16; background: var(--bg-sunken); }
+.reel-video-wrap video { display: block; width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+.reel-play {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 58px;
+  height: 58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg-card) 72%, transparent);
+  color: var(--accent);
+  cursor: pointer;
+  box-shadow: var(--neon-fucsia);
+}
+.reel-play:hover { background: var(--accent-fill); color: #fff; }
+.reels-arrow {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  border: 1px solid var(--border-card);
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--accent);
+  font: 400 32px/1 var(--font-body);
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+.reels-arrow--prev { left: -18px; }
+.reels-arrow--next { right: -18px; }
+@media (min-width: 900px) {
+  .reels-track { grid-auto-columns: calc((100% - 40px) / 3); }
+  .reels-arrow { display: inline-flex; }
+}
+@media (min-width: 1200px) {
+  .reels-track { grid-auto-columns: calc((100% - 60px) / 4); }
+}
 
 /* ── footer ── */
 .app-footer {

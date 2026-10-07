@@ -25,6 +25,12 @@ import iconFB from "@/imports/web/icon-facebook.webp";
 import iconMoon from "@/imports/web/icon-moon.webp";
 import iconSun from "@/imports/web/icon-sun.webp";
 
+const reelVideos = Object.entries(
+  import.meta.glob("./imports/reels/reel*.mp4", { eager: true, query: "?url", import: "default" }) as Record<string, string>,
+)
+  .sort(([a], [b]) => Number(a.match(/reel(\d+)/i)?.[1] ?? 0) - Number(b.match(/reel(\d+)/i)?.[1] ?? 0))
+  .map(([, url]) => url);
+
 import promoJueves from "@/imports/web/promo-jueves.webp";
 import promoMartes from "@/imports/web/promo-martes.webp";
 import promoViernes from "@/imports/web/promo-viernes.webp";
@@ -616,6 +622,7 @@ const ICON_PATHS = {
   route: "M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm12-10a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM6 15V9a4 4 0 0 1 4-4h2M18 9v6a4 4 0 0 1-4 4h-2",
   search: "m20 20-4.2-4.2M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z",
   play: "M8 5v14l11-7L8 5Z",
+  camera: "M4 7h4l1.5-2h5L16 7h4v12H4V7Zm8 3.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z",
   external: "M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5",
 } as const;
 
@@ -986,7 +993,6 @@ function SectionMenu({ onAdd }: { onAdd: AddHandler }) {
         ) : (
           <>
             <div className="menu-panel">
-              <h3 className="price-notice-title menu-subtitle">MENÚ GRANIZADOS</h3>
               <div className="price-notice">
                 <h3 className="price-notice-title">PRECIOS GRANIZADOS (VASO 14 ONZAS)</h3>
                 <dl className="price-notice-list">
@@ -1097,6 +1103,92 @@ function SectionSucursales({ statuses, onOrderHere }: { statuses: Record<BranchI
 }
 
 // ── redes ────────────────────────────────────────────────────────────────────
+function InstagramReels() {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const reelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          const index = Number((entry.target as HTMLElement).dataset.reelIndex);
+          videoRefs.current[index]?.pause();
+          setPlayingIndex((current) => current === index ? null : current);
+        }
+      }),
+      { threshold: 0.6 },
+    );
+    reelRefs.current.forEach((reel) => reel && observer.observe(reel));
+    return () => observer.disconnect();
+  }, []);
+
+  const toggleReel = (index: number) => {
+    const video = videoRefs.current[index];
+    if (!video) return;
+    if (video.paused) {
+      videoRefs.current.forEach((other, otherIndex) => {
+        if (otherIndex !== index) other?.pause();
+      });
+      void video.play();
+      setPlayingIndex(index);
+    } else {
+      video.pause();
+      setPlayingIndex(null);
+    }
+  };
+
+  const scrollReels = (direction: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    track.scrollBy({ left: direction * track.clientWidth / (window.innerWidth >= 1200 ? 4 : 3), behavior: "smooth" });
+  };
+
+  return (
+    <div className="reels">
+      <button type="button" className="reels-arrow reels-arrow--prev" onClick={() => scrollReels(-1)} aria-label="Reel anterior">
+        <span aria-hidden="true">‹</span>
+      </button>
+      <div className="reels-track" ref={trackRef}>
+        {reelVideos.map((url, index) => {
+          const label = `Reel ${String(index + 1).padStart(2, "0")}`;
+          return (
+            <div className="reel-card" key={url} ref={(element) => { reelRefs.current[index] = element; }} data-reel-index={index}>
+              <div className="reel-card-head">
+                <span><Icon name="play" size={14} /> {label.toUpperCase()}</span>
+                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label={`Abrir Instagram desde ${label}`}>
+                  <Icon name="camera" size={18} />
+                </a>
+              </div>
+              <div className="reel-video-wrap">
+                <video
+                  ref={(element) => { videoRefs.current[index] = element; }}
+                  src={`${url}#t=0.1`}
+                  preload="metadata"
+                  playsInline
+                  aria-label={label}
+                  onClick={() => toggleReel(index)}
+                  onEnded={() => setPlayingIndex((current) => current === index ? null : current)}
+                />
+                {playingIndex !== index && (
+                  <button type="button" className="reel-play" onClick={() => toggleReel(index)} aria-label={`Reproducir ${label}`}>
+                    <Icon name="play" size={28} />
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <button type="button" className="reels-arrow reels-arrow--next" onClick={() => scrollReels(1)} aria-label="Siguiente reel">
+        <span aria-hidden="true">›</span>
+      </button>
+    </div>
+  );
+}
+
 function SectionRedes({ onOpenWhatsApp }: { onOpenWhatsApp: () => void }) {
   return (
     <section id="redes" className="section section--redes" aria-labelledby="redes-title">
@@ -1111,9 +1203,25 @@ function SectionRedes({ onOpenWhatsApp }: { onOpenWhatsApp: () => void }) {
         </Reveal>
 
         <ul className="social-grid">
-          {socials.map((s, i) => (
+          <li className="social-grid-instagram">
+            <Reveal>
+              <div className="social-card social-card--instagram" style={{ "--social-color": "#E1306C" } as CSSProperties}>
+                <a className="social-card-content" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+                  <span className="social-icon">
+                    <img src={iconIG} alt="" width={44} height={44} loading="lazy" />
+                  </span>
+                  <span className="social-name">Instagram</span>
+                  <span className="social-handle">@granizados.buga.tulua</span>
+                  <span className="social-followers">+4K <span className="sr-only">seguidores</span></span>
+                  <span className="social-cta">Síguenos<span className="sr-only"> (abre en una pestaña nueva)</span></span>
+                </a>
+                <InstagramReels />
+              </div>
+            </Reveal>
+          </li>
+          {socials.slice(1).map((s, i) => (
             <li key={s.id}>
-              <Reveal delay={i * 60}>
+              <Reveal delay={(i + 1) * 60}>
                 <a className="social-card" href={s.url} target="_blank" rel="noopener noreferrer" style={{ "--social-color": s.color } as CSSProperties}>
                   <span className={`social-icon${s.backdrop ? " social-icon--backdrop" : ""}`}>
                     <img src={s.icon} alt="" width={44} height={44} loading="lazy" />
