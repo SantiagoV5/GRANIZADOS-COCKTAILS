@@ -231,7 +231,7 @@ const GRANIZADO_VARIANTS: Variant[] = [
 const recommended: Product[] = [
   { id: "rec-pocima", name: "LA POCIMA", photo: imgPocima, tall: true, glow: true, badge: "Granizado Fest 2026", context: "Recomendado", desc: "Mango biche manzana, Tequila, Four Loko, Jäger, Smirnoff Tamarindo", variants: single(K(20)) },
   { id: "rec-combi", name: "LA COMBI COMPLETA", photo: imgCombi, tall: true, glow: true, context: "Recomendado", desc: "Combinación deliciosa de todos los sabores", variants: single(K(20)) },
-  { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, tall: true, glow: true, context: "Recomendado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
+  { id: "rec-mexicano", name: "MEXICANO", photo: imgMexicano, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", desc: "Tequila, Smirnoff de limón y chamoy", variants: single(K(20)) },
   { id: "rec-mangonada", name: "MANGONADA", photo: imgMangonada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", desc: "Michelada con salsa de chamoy mexicana, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
   { id: "rec-fresada", name: "FRESADA", photo: imgFresada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
 ];
