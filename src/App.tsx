@@ -542,7 +542,7 @@ function useAutoCarousel<T extends HTMLElement>() {
     const hasOverflow = () => container.scrollWidth > container.clientWidth;
     const children = () => Array.from(container.children).filter((child): child is HTMLElement => child instanceof HTMLElement);
 
-    const schedule = (delay = 4000) => {
+    const schedule = (delay = 1000) => {
       clearTimer();
       if (!visible || stopped || hovering || reducedMotion.matches || document.visibilityState !== "visible" || !hasOverflow()) return;
       const wait = Math.max(delay, resumeAt - Date.now());
