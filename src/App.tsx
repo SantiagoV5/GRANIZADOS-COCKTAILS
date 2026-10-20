@@ -25,6 +25,7 @@ import iconFB from "@/imports/web/icon-facebook.webp";
 import iconMoon from "@/imports/web/icon-moon.webp";
 import iconSun from "@/imports/web/icon-sun.webp";
 import imgFantasmaSangriento from "@/imports/web/fantasma-sangriento.webp";
+import reelHalloween from "@/imports/halloween/reel-halloween.mp4";
 
 const SEASONAL_ENABLED = true;
 
@@ -887,6 +888,76 @@ function ProductCard({ product, onAdd, compact = false, naturalPhoto = false }: 
   );
 }
 
+function SeasonalReel() {
+  const reelRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    const handlePlay = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLVideoElement)) return;
+      document.querySelectorAll("video").forEach((video) => {
+        if (video !== target) video.pause();
+      });
+    };
+    document.addEventListener("play", handlePlay, true);
+    return () => document.removeEventListener("play", handlePlay, true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined" || !reelRef.current) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) {
+        videoRef.current?.pause();
+        setPlaying(false);
+      }
+    }, { threshold: 0.6 });
+    observer.observe(reelRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const toggle = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      void video.play();
+    } else {
+      video.pause();
+      setPlaying(false);
+    }
+  };
+
+  return (
+    <article className="reel-card seasonal-reel-card" ref={reelRef}>
+      <div className="reel-card-head seasonal-reel-card-head">
+        <span><Icon name="play" size={14} /> REEL</span>
+        <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label="Abrir Instagram desde el reel del Fantasma Sangriento">
+          <Icon name="camera" size={18} />
+        </a>
+      </div>
+      <div className="reel-video-wrap seasonal-reel-video-wrap">
+        <video
+          ref={videoRef}
+          src={`${reelHalloween}#t=0.1`}
+          preload="metadata"
+          playsInline
+          aria-label="Reel del Fantasma Sangriento"
+          onClick={toggle}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onEnded={() => setPlaying(false)}
+        />
+        {!playing && (
+          <button type="button" className="reel-play seasonal-reel-play" onClick={toggle} aria-label="Reproducir Reel del Fantasma Sangriento">
+            <Icon name="play" size={28} />
+          </button>
+        )}
+      </div>
+    </article>
+  );
+}
+
 function GranizadoCard({ product, onAdd }: { product: Product; onAdd: AddHandler }) {
   const [variantId, setVariantId] = useState<string | null>(null);
   const variant = variantId ? product.variants.find((v) => v.id === variantId) : undefined;
@@ -951,6 +1022,9 @@ function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
               <div className="seasonal-grid" role="list" aria-labelledby="seasonal-title">
                 <div role="listitem">
                   <ProductCard product={seasonalProduct} onAdd={onAdd} compact naturalPhoto />
+                </div>
+                <div role="listitem">
+                  <SeasonalReel />
                 </div>
               </div>
             </Reveal>
