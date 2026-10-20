@@ -24,6 +24,9 @@ import iconTT from "@/imports/web/icon-tiktok.webp";
 import iconFB from "@/imports/web/icon-facebook.webp";
 import iconMoon from "@/imports/web/icon-moon.webp";
 import iconSun from "@/imports/web/icon-sun.webp";
+import imgFantasmaSangriento from "@/imports/web/fantasma-sangriento.webp";
+
+const SEASONAL_ENABLED = true;
 
 const reelVideos = Object.entries(
   import.meta.glob("./imports/reels/reel*.mp4", { eager: true, query: "?url", import: "default" }) as Record<string, string>,
@@ -236,6 +239,15 @@ const recommended: Product[] = [
   { id: "rec-fresada", name: "FRESADA", photo: imgFresada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
 ];
 
+const seasonalProduct: Product = {
+  id: "fantasma-sangriento",
+  name: "Fantasma Sangriento",
+  photo: imgFantasmaSangriento,
+  badge: "DE TEMPORADA",
+  desc: "Una mezcla infernal de limón, Champagne, Red Bull y Four Loko.",
+  variants: single(K(20)),
+};
+
 const granizado = (id: string, name: string, desc: string, photo: string, context: string, idlePhoto: string, gomasPhoto: string): Product => ({
   id,
   name,
@@ -350,6 +362,7 @@ const promos: Promo[] = [
 const CATALOG = new Map<string, Product>(
   [
     ...recommended,
+    seasonalProduct,
     ...granizadoCategories.flatMap((c) => c.items),
     ...promos.flatMap((p) => (p.product ? [p.product] : [])),
   ].map((p) => [p.id, p]),
@@ -833,7 +846,7 @@ function PromoCard({ promo, onAdd }: { promo: Promo; onAdd: AddHandler }) {
   );
 }
 
-function ProductCard({ product, onAdd, compact = false }: { product: Product; onAdd: AddHandler; compact?: boolean }) {
+function ProductCard({ product, onAdd, compact = false, naturalPhoto = false }: { product: Product; onAdd: AddHandler; compact?: boolean; naturalPhoto?: boolean }) {
   const [added, setAdded] = useState(false);
   const timer = useRef(0);
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -851,8 +864,8 @@ function ProductCard({ product, onAdd, compact = false }: { product: Product; on
   return (
     <article className={`product-card${compact ? " product-card--compact" : ""}${added ? " is-added" : ""}`}>
       {product.photo && (
-        <div className={`product-media${product.tall ? " product-media--tall" : ""}${product.glow ? " product-media--glow" : ""}`}>
-          <img src={product.photo} alt="" width={300} height={product.tall ? 450 : 400} loading="lazy" decoding="async" />
+        <div className={`product-media${product.tall ? " product-media--tall" : ""}${product.glow ? " product-media--glow" : ""}${naturalPhoto ? " product-media--natural" : ""}`}>
+          <img src={product.photo} alt="" width={300} height={naturalPhoto ? undefined : (product.tall ? 450 : 400)} loading="lazy" decoding="async" />
         </div>
       )}
       <div className="product-body">
@@ -928,6 +941,21 @@ function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
             ))}
           </div>
         </Reveal>
+
+        {SEASONAL_ENABLED && (
+          <section className="seasonal-section" aria-labelledby="seasonal-title">
+            <Reveal>
+              <SectionHeading id="seasonal-title" eyebrow="EDICIÓN HALLOWEEN" title="GRANIZADO DE TEMPORADA" className="seasonal-heading" />
+            </Reveal>
+            <Reveal delay={60}>
+              <div className="seasonal-grid" role="list" aria-labelledby="seasonal-title">
+                <div role="listitem">
+                  <ProductCard product={seasonalProduct} onAdd={onAdd} compact naturalPhoto />
+                </div>
+              </div>
+            </Reveal>
+          </section>
+        )}
 
         <Reveal>
           <SectionHeading id="rec-title" eyebrow="Los favoritos" title="Recomendados">
