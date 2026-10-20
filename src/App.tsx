@@ -220,6 +220,8 @@ type Product = {
   variants: Variant[];
 };
 
+const isGranizadoProduct = (product: Product) => product.id.startsWith("gl-") || product.id.startsWith("gs-");
+
 const K = (n: number) => n * 1000;
 const single = (price: number): Variant[] => [{ id: "u", label: "", price }];
 const conSinLicor = (price: number): Variant[] => [
@@ -513,6 +515,138 @@ function useInView<T extends Element>(rootMargin = "200px") {
     return () => obs.disconnect();
   }, [inView, rootMargin]);
   return [ref, inView] as const;
+}
+
+function useAutoCarousel<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+
+  useEffect(() => {
+    const container = ref.current;
+    if (!container) return;
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let visible = false;
+    let stopped = false;
+    let autoScrollUntil = 0;
+    let resumeAt = 0;
+    let timer = 0;
+    let restoreSnapTimer = 0;
+    let hovering = false;
+    const originalSnap = container.style.scrollSnapType;
+
+    const clearTimer = () => {
+      window.clearTimeout(timer);
+      timer = 0;
+    };
+
+    const hasOverflow = () => container.scrollWidth > container.clientWidth;
+    const children = () => Array.from(container.children).filter((child): child is HTMLElement => child instanceof HTMLElement);
+
+    const schedule = (delay = 4000) => {
+      clearTimer();
+      if (!visible || stopped || hovering || reducedMotion.matches || document.visibilityState !== "visible" || !hasOverflow()) return;
+      const wait = Math.max(delay, resumeAt - Date.now());
+      timer = window.setTimeout(() => {
+        timer = 0;
+        advance();
+      }, wait);
+    };
+
+    const pauseForInteraction = () => {
+      if (Date.now() < autoScrollUntil) return;
+      resumeAt = Date.now() + 5000;
+      schedule(5000);
+    };
+
+    const advance = () => {
+      if (!visible || stopped || hovering || reducedMotion.matches || document.visibilityState !== "visible" || !hasOverflow()) {
+        schedule();
+        return;
+      }
+
+      const items = children();
+      if (!items.length) {
+        schedule();
+        return;
+      }
+      const current = items.reduce((index, item, itemIndex) => (
+        item.offsetLeft <= container.scrollLeft + 8 ? itemIndex : index
+      ), 0);
+      const target = items[current + 1] ?? items[0];
+      autoScrollUntil = Date.now() + 900;
+      container.style.scrollSnapType = "none";
+      container.scrollTo({ left: target.offsetLeft, behavior: "smooth" });
+      window.clearTimeout(restoreSnapTimer);
+      restoreSnapTimer = window.setTimeout(() => {
+        container.style.scrollSnapType = originalSnap;
+        autoScrollUntil = 0;
+      }, 900);
+      schedule();
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") schedule();
+      else clearTimer();
+    };
+    const handleResize = () => schedule();
+    const handleMotionChange = () => {
+      if (reducedMotion.matches) clearTimer();
+      else schedule();
+    };
+    const handleScroll = () => {
+      if (Date.now() >= autoScrollUntil) pauseForInteraction();
+    };
+    const handleAdd = (event: Event) => {
+      if ((event.target as Element | null)?.closest(".add-btn")) {
+        stopped = true;
+        clearTimer();
+      }
+    };
+    const handleMouseEnter = () => {
+      hovering = true;
+      clearTimer();
+    };
+    const handleMouseLeave = () => {
+      hovering = false;
+      pauseForInteraction();
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) schedule();
+      else clearTimer();
+    }, { threshold: 0.5 });
+
+    observer.observe(container);
+    container.addEventListener("touchstart", pauseForInteraction, { passive: true });
+    container.addEventListener("pointerdown", pauseForInteraction, { passive: true });
+    container.addEventListener("pointermove", pauseForInteraction, { passive: true });
+    container.addEventListener("mouseenter", handleMouseEnter);
+    container.addEventListener("mouseleave", handleMouseLeave);
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    container.addEventListener("click", handleAdd, true);
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("resize", handleResize);
+    reducedMotion.addEventListener("change", handleMotionChange);
+
+    return () => {
+      clearTimer();
+      window.clearTimeout(restoreSnapTimer);
+      container.style.scrollSnapType = originalSnap;
+      observer.disconnect();
+      container.removeEventListener("touchstart", pauseForInteraction);
+      container.removeEventListener("pointerdown", pauseForInteraction);
+      container.removeEventListener("pointermove", pauseForInteraction);
+      container.removeEventListener("mouseenter", handleMouseEnter);
+      container.removeEventListener("mouseleave", handleMouseLeave);
+      container.removeEventListener("scroll", handleScroll);
+      container.removeEventListener("click", handleAdd, true);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("resize", handleResize);
+      reducedMotion.removeEventListener("change", handleMotionChange);
+    };
+  }, []);
+
+  return ref;
 }
 
 // ── pedido ───────────────────────────────────────────────────────────────────
@@ -960,14 +1094,24 @@ function SeasonalReel() {
 
 function GranizadoCard({ product, onAdd }: { product: Product; onAdd: AddHandler }) {
   const [variantId, setVariantId] = useState<string | null>(null);
+  const [cardRef, cardInView] = useInView<HTMLElement>("200px");
   const variant = variantId ? product.variants.find((v) => v.id === variantId) : undefined;
   const photo = variant?.photo ?? (variantId === "full" ? product.photo : product.idlePhoto ?? product.photo);
-  const glow = variantId !== "full" && !!photo;
+
+  useEffect(() => {
+    if (!cardInView) return;
+    [product.photo, product.idlePhoto, ...product.variants.map((v) => v.photo)]
+      .filter((src): src is string => !!src)
+      .forEach((src) => {
+        const image = new Image();
+        image.src = src;
+      });
+  }, [cardInView, product]);
 
   return (
-    <article className="product-card">
+    <article ref={cardRef} className="product-card">
       {photo && (
-        <div className={`product-media${product.tall ? " product-media--tall" : ""}${glow ? " product-media--glow" : ""}`}>
+        <div className={`product-media product-media--glow granizado-media${product.tall ? " product-media--tall" : ""}`}>
           <img src={photo} alt="" width={300} height={product.tall ? 450 : 400} loading="lazy" decoding="async" />
         </div>
       )}
@@ -995,6 +1139,9 @@ function GranizadoCard({ product, onAdd }: { product: Product; onAdd: AddHandler
 }
 
 function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
+  const promosRef = useAutoCarousel<HTMLDivElement>();
+  const recommendedRef = useAutoCarousel<HTMLDivElement>();
+
   return (
     <section id="inicio" className="section section--inicio" aria-label="Inicio">
       <Hero />
@@ -1004,7 +1151,7 @@ function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
           <SectionHeading id="promos-title" eyebrow="Cada semana" title="Promociones" />
         </Reveal>
         <Reveal delay={60}>
-          <div className="rail rail--promos" role="list" aria-labelledby="promos-title">
+          <div ref={promosRef} className="rail rail--promos" role="list" aria-labelledby="promos-title">
             {promos.map((p) => (
               <div role="listitem" key={p.day} className="rail-item">
                 <PromoCard promo={p} onAdd={onAdd} />
@@ -1037,7 +1184,7 @@ function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
           </SectionHeading>
         </Reveal>
         <Reveal delay={60}>
-          <div className="rail rail--products" role="list" aria-labelledby="rec-title">
+          <div ref={recommendedRef} className="rail rail--products" role="list" aria-labelledby="rec-title">
             {recommended.map((p) => (
               <div role="listitem" key={p.id} className="rail-item">
                 <ProductCard product={p} onAdd={onAdd} compact />
@@ -1373,6 +1520,16 @@ function VariantPicker({ product, initialVariantId, status, onClose, onConfirm }
     }
   }, [product, initialVariantId]);
 
+  useEffect(() => {
+    if (!product || !isGranizadoProduct(product)) return;
+    [product.photo, product.idlePhoto, ...product.variants.map((v) => v.photo)]
+      .filter((src): src is string => !!src)
+      .forEach((src) => {
+        const image = new Image();
+        image.src = src;
+      });
+  }, [product]);
+
   const promo = product ? promos.find((p) => p.product?.id === product.id) : undefined;
   const variant = product?.variants.find((v) => v.id === variantId) ?? product?.variants[0];
   const variantPhoto = variant?.photo ?? product?.photo;
@@ -1387,7 +1544,7 @@ function VariantPicker({ product, initialVariantId, status, onClose, onConfirm }
           </div>
           <div className="sheet-body">
             {variantPhoto && !promo && (
-              <img className={`picker-photo${variant?.photo ? " product-media--glow" : ""}`} src={variantPhoto} alt="" width={120} height={160} />
+              <img className={`picker-photo${isGranizadoProduct(product) ? " product-media--glow" : ""}`} src={variantPhoto} alt="" width={120} height={160} />
             )}
             <p className="picker-desc">{product.desc}</p>
             {promo && status.sessionDay !== promo.weekday && (
@@ -1576,7 +1733,7 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
                         <li key={`${l.productId}::${l.variantId}`} className="cart-line">
                           {(l.variant.photo ?? l.product.photo) ? (
                             <img src={l.variant.photo ?? l.product.photo} alt="" width={48} height={64}
-                              className={l.variant.photo ? "product-media--glow" : undefined} />
+                              className={isGranizadoProduct(l.product) ? "product-media--glow" : undefined} />
                           ) : <img src={logoNeon} alt="" width={48} height={64} className="cart-thumb" />}
                           <div className="cart-line-info">
                             <span className="cart-line-name">{l.product.name}</span>
@@ -1647,7 +1804,7 @@ function CartSheet({ open, onClose, cart, dispatch, order, setOrder, status }: {
                       <li key={`${l.productId}::${l.variantId}`} className="cart-line cart-line--readonly">
                         {(l.variant.photo ?? l.product.photo) ? (
                           <img src={l.variant.photo ?? l.product.photo} alt="" width={48} height={64}
-                            className={l.variant.photo ? "product-media--glow" : undefined} />
+                            className={isGranizadoProduct(l.product) ? "product-media--glow" : undefined} />
                         ) : <img src={logoNeon} alt="" width={48} height={64} className="cart-thumb" />}
                         <div className="cart-line-info">
                           <span className="cart-line-name">{l.product.name}</span>

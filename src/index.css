@@ -788,6 +788,7 @@ button svg, a svg { flex-shrink: 0; }
 .product-media.product-media--natural img { height: auto; object-fit: initial; }
 .product-card:hover .product-media--natural img { transform: none; }
 .product-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s var(--ease-out); }
+.granizado-media img { transition: none; }
 .product-card:hover .product-media img { transform: scale(1.06); }
 .product-badge {
   align-self: flex-start;
