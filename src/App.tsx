@@ -24,10 +24,6 @@ import iconTT from "@/imports/web/icon-tiktok.webp";
 import iconFB from "@/imports/web/icon-facebook.webp";
 import iconMoon from "@/imports/web/icon-moon.webp";
 import iconSun from "@/imports/web/icon-sun.webp";
-import imgFantasmaSangriento from "@/imports/web/fantasma-sangriento.webp";
-import reelHalloween from "@/imports/halloween/reel-halloween.mp4";
-
-const SEASONAL_ENABLED = true;
 
 const reelVideos = Object.entries(
   import.meta.glob("./imports/reels/reel*.mp4", { eager: true, query: "?url", import: "default" }) as Record<string, string>,
@@ -242,15 +238,6 @@ const recommended: Product[] = [
   { id: "rec-fresada", name: "FRESADA", photo: imgFresada, tall: true, glow: true, badge: "Con o sin licor", context: "Recomendado", desc: "Granizado de fresa con chamoy, tajín y gomas enchiladas", variants: conSinLicor(K(20)) },
 ];
 
-const seasonalProduct: Product = {
-  id: "fantasma-sangriento",
-  name: "Fantasma Sangriento",
-  photo: imgFantasmaSangriento,
-  badge: "DE TEMPORADA",
-  desc: "Una mezcla infernal de limón, Champagne, Red Bull y Four Loko.",
-  variants: single(K(20)),
-};
-
 const granizado = (id: string, name: string, desc: string, photo: string, context: string, idlePhoto: string, gomasPhoto: string): Product => ({
   id,
   name,
@@ -365,7 +352,6 @@ const promos: Promo[] = [
 const CATALOG = new Map<string, Product>(
   [
     ...recommended,
-    seasonalProduct,
     ...granizadoCategories.flatMap((c) => c.items),
     ...promos.flatMap((p) => (p.product ? [p.product] : [])),
   ].map((p) => [p.id, p]),
@@ -515,138 +501,6 @@ function useInView<T extends Element>(rootMargin = "200px") {
     return () => obs.disconnect();
   }, [inView, rootMargin]);
   return [ref, inView] as const;
-}
-
-function useAutoCarousel<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
-
-  useEffect(() => {
-    const container = ref.current;
-    if (!container) return;
-
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let visible = false;
-    let stopped = false;
-    let autoScrollUntil = 0;
-    let resumeAt = 0;
-    let timer = 0;
-    let restoreSnapTimer = 0;
-    let hovering = false;
-    const originalSnap = container.style.scrollSnapType;
-
-    const clearTimer = () => {
-      window.clearTimeout(timer);
-      timer = 0;
-    };
-
-    const hasOverflow = () => container.scrollWidth > container.clientWidth;
-    const children = () => Array.from(container.children).filter((child): child is HTMLElement => child instanceof HTMLElement);
-
-    const schedule = (delay = 1000) => {
-      clearTimer();
-      if (!visible || stopped || hovering || reducedMotion.matches || document.visibilityState !== "visible" || !hasOverflow()) return;
-      const wait = Math.max(delay, resumeAt - Date.now());
-      timer = window.setTimeout(() => {
-        timer = 0;
-        advance();
-      }, wait);
-    };
-
-    const pauseForInteraction = () => {
-      if (Date.now() < autoScrollUntil) return;
-      resumeAt = Date.now() + 5000;
-      schedule(5000);
-    };
-
-    const advance = () => {
-      if (!visible || stopped || hovering || reducedMotion.matches || document.visibilityState !== "visible" || !hasOverflow()) {
-        schedule();
-        return;
-      }
-
-      const items = children();
-      if (!items.length) {
-        schedule();
-        return;
-      }
-      const current = items.reduce((index, item, itemIndex) => (
-        item.offsetLeft <= container.scrollLeft + 8 ? itemIndex : index
-      ), 0);
-      const target = items[current + 1] ?? items[0];
-      autoScrollUntil = Date.now() + 900;
-      container.style.scrollSnapType = "none";
-      container.scrollTo({ left: target.offsetLeft, behavior: "smooth" });
-      window.clearTimeout(restoreSnapTimer);
-      restoreSnapTimer = window.setTimeout(() => {
-        container.style.scrollSnapType = originalSnap;
-        autoScrollUntil = 0;
-      }, 900);
-      schedule();
-    };
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") schedule();
-      else clearTimer();
-    };
-    const handleResize = () => schedule();
-    const handleMotionChange = () => {
-      if (reducedMotion.matches) clearTimer();
-      else schedule();
-    };
-    const handleScroll = () => {
-      if (Date.now() >= autoScrollUntil) pauseForInteraction();
-    };
-    const handleAdd = (event: Event) => {
-      if ((event.target as Element | null)?.closest(".add-btn")) {
-        stopped = true;
-        clearTimer();
-      }
-    };
-    const handleMouseEnter = () => {
-      hovering = true;
-      clearTimer();
-    };
-    const handleMouseLeave = () => {
-      hovering = false;
-      pauseForInteraction();
-    };
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
-      if (visible) schedule();
-      else clearTimer();
-    }, { threshold: 0.5 });
-
-    observer.observe(container);
-    container.addEventListener("touchstart", pauseForInteraction, { passive: true });
-    container.addEventListener("pointerdown", pauseForInteraction, { passive: true });
-    container.addEventListener("pointermove", pauseForInteraction, { passive: true });
-    container.addEventListener("mouseenter", handleMouseEnter);
-    container.addEventListener("mouseleave", handleMouseLeave);
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    container.addEventListener("click", handleAdd, true);
-    document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("resize", handleResize);
-    reducedMotion.addEventListener("change", handleMotionChange);
-
-    return () => {
-      clearTimer();
-      window.clearTimeout(restoreSnapTimer);
-      container.style.scrollSnapType = originalSnap;
-      observer.disconnect();
-      container.removeEventListener("touchstart", pauseForInteraction);
-      container.removeEventListener("pointerdown", pauseForInteraction);
-      container.removeEventListener("pointermove", pauseForInteraction);
-      container.removeEventListener("mouseenter", handleMouseEnter);
-      container.removeEventListener("mouseleave", handleMouseLeave);
-      container.removeEventListener("scroll", handleScroll);
-      container.removeEventListener("click", handleAdd, true);
-      document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("resize", handleResize);
-      reducedMotion.removeEventListener("change", handleMotionChange);
-    };
-  }, []);
-
-  return ref;
 }
 
 // ── pedido ───────────────────────────────────────────────────────────────────
@@ -981,7 +835,7 @@ function PromoCard({ promo, onAdd }: { promo: Promo; onAdd: AddHandler }) {
   );
 }
 
-function ProductCard({ product, onAdd, compact = false, naturalPhoto = false }: { product: Product; onAdd: AddHandler; compact?: boolean; naturalPhoto?: boolean }) {
+function ProductCard({ product, onAdd, compact = false }: { product: Product; onAdd: AddHandler; compact?: boolean }) {
   const [added, setAdded] = useState(false);
   const timer = useRef(0);
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -999,8 +853,8 @@ function ProductCard({ product, onAdd, compact = false, naturalPhoto = false }: 
   return (
     <article className={`product-card${compact ? " product-card--compact" : ""}${added ? " is-added" : ""}`}>
       {product.photo && (
-        <div className={`product-media${product.tall ? " product-media--tall" : ""}${product.glow ? " product-media--glow" : ""}${naturalPhoto ? " product-media--natural" : ""}`}>
-          <img src={product.photo} alt="" width={300} height={naturalPhoto ? undefined : (product.tall ? 450 : 400)} loading="lazy" decoding="async" />
+        <div className={`product-media${product.tall ? " product-media--tall" : ""}${product.glow ? " product-media--glow" : ""}`}>
+          <img src={product.photo} alt="" width={300} height={product.tall ? 450 : 400} loading="lazy" decoding="async" />
         </div>
       )}
       <div className="product-body">
@@ -1017,76 +871,6 @@ function ProductCard({ product, onAdd, compact = false, naturalPhoto = false }: 
             <span>{added ? "Listo" : "Agregar"}</span>
           </button>
         </div>
-      </div>
-    </article>
-  );
-}
-
-function SeasonalReel() {
-  const reelRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [playing, setPlaying] = useState(false);
-
-  useEffect(() => {
-    const handlePlay = (event: Event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLVideoElement)) return;
-      document.querySelectorAll("video").forEach((video) => {
-        if (video !== target) video.pause();
-      });
-    };
-    document.addEventListener("play", handlePlay, true);
-    return () => document.removeEventListener("play", handlePlay, true);
-  }, []);
-
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined" || !reelRef.current) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) {
-        videoRef.current?.pause();
-        setPlaying(false);
-      }
-    }, { threshold: 0.6 });
-    observer.observe(reelRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  const toggle = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      void video.play();
-    } else {
-      video.pause();
-      setPlaying(false);
-    }
-  };
-
-  return (
-    <article className="reel-card seasonal-reel-card" ref={reelRef}>
-      <div className="reel-card-head seasonal-reel-card-head">
-        <span><Icon name="play" size={14} /> REEL</span>
-        <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label="Abrir Instagram desde el reel del Fantasma Sangriento">
-          <Icon name="camera" size={18} />
-        </a>
-      </div>
-      <div className="reel-video-wrap seasonal-reel-video-wrap">
-        <video
-          ref={videoRef}
-          src={`${reelHalloween}#t=0.1`}
-          preload="metadata"
-          playsInline
-          aria-label="Reel del Fantasma Sangriento"
-          onClick={toggle}
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
-          onEnded={() => setPlaying(false)}
-        />
-        {!playing && (
-          <button type="button" className="reel-play seasonal-reel-play" onClick={toggle} aria-label="Reproducir Reel del Fantasma Sangriento">
-            <Icon name="play" size={28} />
-          </button>
-        )}
       </div>
     </article>
   );
@@ -1139,9 +923,6 @@ function GranizadoCard({ product, onAdd }: { product: Product; onAdd: AddHandler
 }
 
 function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
-  const promosRef = useAutoCarousel<HTMLDivElement>();
-  const recommendedRef = useAutoCarousel<HTMLDivElement>();
-
   return (
     <section id="inicio" className="section section--inicio" aria-label="Inicio">
       <Hero />
@@ -1151,7 +932,7 @@ function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
           <SectionHeading id="promos-title" eyebrow="Cada semana" title="Promociones" />
         </Reveal>
         <Reveal delay={60}>
-          <div ref={promosRef} className="rail rail--promos" role="list" aria-labelledby="promos-title">
+          <div className="rail rail--promos" role="list" aria-labelledby="promos-title">
             {promos.map((p) => (
               <div role="listitem" key={p.day} className="rail-item">
                 <PromoCard promo={p} onAdd={onAdd} />
@@ -1160,33 +941,15 @@ function SectionInicio({ onAdd }: { onAdd: AddHandler }) {
           </div>
         </Reveal>
 
-        {SEASONAL_ENABLED && (
-          <section className="seasonal-section" aria-labelledby="seasonal-title">
-            <Reveal>
-              <SectionHeading id="seasonal-title" eyebrow="EDICIÓN HALLOWEEN" title="GRANIZADO DE TEMPORADA" className="seasonal-heading" />
-            </Reveal>
-            <Reveal delay={60}>
-              <div className="seasonal-grid" role="list" aria-labelledby="seasonal-title">
-                <div role="listitem">
-                  <ProductCard product={seasonalProduct} onAdd={onAdd} compact naturalPhoto />
-                </div>
-                <div role="listitem">
-                  <SeasonalReel />
-                </div>
-              </div>
-            </Reveal>
-          </section>
-        )}
-
         <Reveal>
           <SectionHeading id="rec-title" eyebrow="Los favoritos" title="Recomendados">
             <span className="section-heading-subtitle">(VASO 14 ONZAS)</span>
           </SectionHeading>
         </Reveal>
         <Reveal delay={60}>
-          <div ref={recommendedRef} className="rail rail--products" role="list" aria-labelledby="rec-title">
-            {recommended.map((p) => (
-              <div role="listitem" key={p.id} className="rail-item">
+          <div className="product-grid recommended-grid" role="list" aria-labelledby="rec-title">
+            {recommended.map((p, i) => (
+              <div role="listitem" key={p.id} className="grid-item" style={{ "--i": i } as CSSProperties}>
                 <ProductCard product={p} onAdd={onAdd} compact />
               </div>
             ))}
@@ -1893,14 +1656,14 @@ function WhatsAppFloat({ open, onToggle }: { open: boolean; onToggle: () => void
           {BRANCH_IDS.map((id) => (
             <a key={id} href={waChatUrl(BRANCHES[id])} target="_blank" rel="noopener noreferrer" onClick={onToggle}>
               <MaskIcon src={iconWA} color="var(--wa-text)" size={18} />
-              <span>WhatsApp {BRANCHES[id].name}<small>{fmtPhone(BRANCHES[id].whatsapp)}</small></span>
+              <span>{BRANCHES[id].name.toUpperCase()}<small>{fmtPhone(BRANCHES[id].whatsapp)}</small></span>
             </a>
           ))}
         </div>
       )}
       <button type="button" className="wa-float" onClick={onToggle}
         aria-expanded={open} aria-controls="wa-menu" aria-label="Chatear por WhatsApp">
-        <MaskIcon src={iconWA} color="#fff" size={28} />
+        <MaskIcon src={iconWA} color="#fff" size={33} />
       </button>
     </div>
   );
